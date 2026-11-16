@@ -2,13 +2,13 @@
 
 একটি আধুনিক ইসলামিক অ্যাপ — নামাজের সময়, কুরআন কারীম, কিবলা কম্পাস, তসবিহ, দুয়া, হিজরি ক্যালেন্ডার ও সেটিংস। UI বাংলায়, আরবি বিষয়বস্তু Amiri হরফে।
 
-> **অবস্থা / Status (২০২৬-১১-১৬ পর্যন্ত)**: সোর্স-কোড কাজ চলমান — থিম সুইচ, নতুন আয়াত কার্ড, শেয়ার=ইমেজ, **উপরের অ্যাকশন বার সরানো**; **কোনো প্রকাশিত APK/AAB নেই** (২০২৬.০০.০৬ রিলিজ অপেক্ষমাণ — `CHANGELOG.md` দেখুন)।
+> **অবস্থা / Status (২০২৬-১১-১৬ পর্যন্ত)**: সোর্স-কোড কাজ চলমান — থিম সুইচ, নতুন আয়াত কার্ড, শেয়ার=ইমেজ, **উপরের অ্যাকশন বার সরানো**; **কোনো প্রকাশিত APK/AAB নেই** (২০২৬.০০.০৭ রিলিজ অপেক্ষমাণ — `CHANGELOG.md` দেখুন)।
 >
 > **প্যাকেজ / applicationId**: `com.hidayah.android`। ডিভাইসে/এমুলেটরে রান করে UI যাচাই করা হয়নি (এই পরিবেশে ডিসপ্লে নেই)।
 
 ## ডকুমেন্টেশন ও রিপোজিটরি
 
-প্রকল্পের সকল গুরুত্বপূর্ণ নথি **[iNWEB-DOCS/Hidayah-Android](https://github.com/iNWEB-DOCS/Hidayah-Android)** রিপোজিটরিতে সংরক্ষিত (private):
+প্রকল্পের সকল গুরুত্বপূর্ণ নথি **[iNWEB-DOCS/Hidayah-Android](https://github.com/iNWEB-DOCS/Hidayah-Android)** রিপোজিটরিতে সংরক্ষিত (public):
 
 - **[guides/SCREENS.md](https://github.com/iNWEB-DOCS/Hidayah-Android/blob/main/guides/SCREENS.md)** — ১৬ স্ক্রিনের সিরিয়াল তালিকা (ইন্সটল → অনবোর্ডিং → সেটআপ → পারমিশন → হোম …), কোনটি তৈরি ও মকআপের সাথে প্রতিটিতে মিল/অমিল ও সংশোধনের নোট।
 - **[guides/PUBLISHING.md](https://github.com/iNWEB-DOCS/Hidayah-Android/blob/main/guides/PUBLISHING.md)** — ২১টি সম্ভাব্য প্ল্যাটফর্মে (Google Play, Galaxy Store, Amazon, AppGallery, GetApps, F-Droid, APKPure, Aptoide, Uptodown, SlideME, itch.io, GetJar, Cafe Bazaar, Myket, GitHub Releases, নিজস্ব ওয়েবসাইট…) অ্যাকাউন্ট খোলার ও প্রকাশের সম্পূর্ণ স্টেপ-বাই-স্টেপ গাইড।

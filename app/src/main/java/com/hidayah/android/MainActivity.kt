@@ -82,7 +82,9 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
         NavHost(
             navController = navController,
             startDestination = Routes.COVER,
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            // টপ ইনসেট স্ক্রিনগুলো নিজেরাই statusBarsPadding() দিয়ে নেয় —
+            // এখানে শুধু নিচে bottomBar-এর উচ্চতা বাদ দেওয়া হয় (ডবল প্যাডিং হতো)।
+            modifier = Modifier.fillMaxSize().padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable(Routes.COVER) {
                 CoverScreen(onStart = {

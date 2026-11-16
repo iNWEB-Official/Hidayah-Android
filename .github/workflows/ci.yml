@@ -54,14 +54,14 @@ jobs:
           APK=app/build/outputs/apk/debug/app-debug.apk
           echo "aapt: $AAPT"
           "$AAPT" dump badging "$APK" | grep -E "package: name='com.hidayah.android'" | sed 's/, /\n  /g'
-          "$AAPT" dump badging "$APK" | grep -q "versionCode='20260006'"
-          "$AAPT" dump badging "$APK" | grep -q "versionName='2026.00.06'"
-          echo "✅ badging OK: versionCode=20260006 versionName=2026.00.06"
+          "$AAPT" dump badging "$APK" | grep -q "versionCode='20260007'"
+          "$AAPT" dump badging "$APK" | grep -q "versionName='2026.00.07'"
+          echo "✅ badging OK: versionCode=20260007 versionName=2026.00.07"
 
       - name: ⬆️ Upload APK artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: hidayah-apk-2026.00.06
+          name: hidayah-apk-2026.00.07
           path: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/release/app-release-unsigned.apk

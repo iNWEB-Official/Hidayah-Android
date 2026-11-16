@@ -98,7 +98,7 @@ object AyahShareImage {
 
         // fonts
         val serif = ResourcesCompat.getFont(context, R.font.noto_sans_bengali_semi_bold) ?: Typeface.DEFAULT_BOLD
-        val sans = ResourcesCompat.getFont(context, R.font.noto_sans_bengali_regular) ?: Typeface.DEFAULT
+        val bnSerif = ResourcesCompat.getFont(context, R.font.noto_serif_bengali_semibold) ?: Typeface.DEFAULT_BOLD
         val arabicType = ResourcesCompat.getFont(context, R.font.amiri_regular) ?: Typeface.DEFAULT
 
         val cx = w / 2f
@@ -144,11 +144,11 @@ object AyahShareImage {
             y += sizeAu * 1.62f
         }
 
-        // translation (wrap, max 2 lines, shrink if needed)
-        var sizeBn = 29f
+        // translation — Noto Serif Bengali (বাংলা টাইফোগ্রাফি ফন্ট)
+        var sizeBn = 32f
         val bnPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = sans
-            color = 0xFFD3E4D7.toInt()
+            typeface = bnSerif
+            color = 0xFFDCE9DD.toInt()
             textAlign = Paint.Align.CENTER
         }
         var bnLines: List<String>
@@ -164,9 +164,9 @@ object AyahShareImage {
             y += sizeBn * 1.5f
         }
 
-        // reference
+        // reference — Noto Serif Bengali
         val refPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = serif
+            typeface = bnSerif
             textSize = 25f
             color = 0xFFE9D38A.toInt()
             textAlign = Paint.Align.CENTER

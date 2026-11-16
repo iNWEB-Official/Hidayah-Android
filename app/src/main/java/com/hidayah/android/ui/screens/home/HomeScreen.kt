@@ -30,9 +30,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hidayah.android.data.hijri.HijriDates
-import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
+import android.content.Intent
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.Image
+import com.hidayah.android.R
 import com.hidayah.android.state.HidayahViewModel
 import com.hidayah.android.ui.components.*
 import com.hidayah.android.ui.theme.*
@@ -175,17 +179,30 @@ fun HomeScreen(
                 // ---------- Six times panel ----------
                 PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.weight(1.02f))
 
-                // ---------- Quick actions — own cream card ----------
+                // ---------- Quick actions — background-image card ----------
                 Card(
                     shape = HidayahShapes.Medium,
-                    colors = CardDefaults.cardColors(containerColor = pal.card),
+                    colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
                     modifier = Modifier.fillMaxWidth().weight(0.94f)
                 ) {
-                    Row(
-                        Modifier.fillMaxSize().padding(vertical = dp(7f)),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Box(Modifier.fillMaxSize()) {
+                        Image(
+                            painterResource(R.drawable.bg_quick_actions),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize().clip(HidayahShapes.Medium)
+                        )
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .clip(HidayahShapes.Medium)
+                                .background(Brush.verticalGradient(listOf(Color(0x26000000), Color(0x4D000000))))
+                        )
+                        Row(
+                            Modifier.fillMaxSize().padding(horizontal = dp(10f), vertical = dp(7f)),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                         RoundQuickAction("কুরআন", onClick = onOpenQuran, s = s) { tint ->
                             Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = tint, modifier = Modifier.size(dp(24f)))
                         }
@@ -198,11 +215,12 @@ fun HomeScreen(
                         RoundQuickAction("তসবিহ", onClick = onOpenTasbih, s = s) { tint ->
                             TasbihBeadsIcon(tint = tint, modifier = Modifier.size(dp(24f)))
                         }
+                        }
                     }
                 }
 
-                // ---------- Ayah of the day — dark emerald card ----------
-                AyahOfDayCard(viewModel, s = s, modifier = Modifier.weight(1.38f).padding(bottom = dp(2f)))
+                // ---------- Ayah of the day — header row (share/copy বাইরে) + pure card ----------
+                AyahOfDayCard(viewModel, s = s, modifier = Modifier.weight(1.30f).padding(bottom = dp(2f)))
             }
         }
     }
@@ -275,24 +293,40 @@ private fun PrayerTimesPanel(
 ) {
     Card(
         shape = HidayahShapes.Medium,
-        colors = CardDefaults.cardColors(containerColor = pal.card),
+        colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(
-            Modifier.fillMaxSize().padding(horizontal = (4 * s).dp, vertical = (8 * s).dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            times.forEachIndexed { index, prayer ->
-                val isNext = index == nextIndex
-                PrayerTimeCell(
-                    id = prayer.id,
-                    name = prayer.nameBangla,
-                    time = BnDigits.minutesToBnTime(prayer.totalMinutes),
-                    isNext = isNext,
-                    s = s,
-                    modifier = Modifier.weight(1f)
-                )
+        Box(Modifier.fillMaxSize()) {
+            Image(
+                painterResource(R.drawable.bg_prayer_times),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().clip(HidayahShapes.Medium)
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clip(HidayahShapes.Medium)
+                    .background(Brush.verticalGradient(listOf(Color(0x40122B21), Color(0x73122B21))))
+            )
+            Row(
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = (6 * s).dp, vertical = (8 * s).dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                times.forEachIndexed { index, prayer ->
+                    val isNext = index == nextIndex
+                    PrayerTimeCell(
+                        id = prayer.id,
+                        name = prayer.nameBangla,
+                        time = BnDigits.minutesToBnTime(prayer.totalMinutes),
+                        isNext = isNext,
+                        s = s,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -301,8 +335,8 @@ private fun PrayerTimesPanel(
 @Composable
 private fun PrayerTimeCell(id: String, name: String, time: String, isNext: Boolean, s: Float, modifier: Modifier = Modifier) {
     val sp: (Float) -> androidx.compose.ui.unit.TextUnit = { (it * s).sp }
-    val iconTint = if (isNext) EmeraldDeep else pal.sub
-    val cellBg = if (isNext) pal.panelHighlight else Color.Transparent
+    val iconTint = if (isNext) Gold else OnEmMuted
+    val cellBg = if (isNext) Gold.copy(alpha = 0.16f) else Color.Transparent
     Column(
         modifier
             .clip(HidayahShapes.Medium)
@@ -315,14 +349,14 @@ private fun PrayerTimeCell(id: String, name: String, time: String, isNext: Boole
         Text(
             name,
             style = HidayahType.Caption.copy(fontSize = sp(11.5f)),
-            color = if (isNext) EmeraldDeep else pal.sub,
+            color = if (isNext) GoldSoft else OnEmMuted,
             fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium,
             maxLines = 1
         )
         Text(
             time,
             style = HidayahType.Caption.copy(fontSize = sp(11.5f)),
-            color = if (isNext) EmeraldDeep else pal.ink,
+            color = if (isNext) Gold else Cream,
             fontWeight = if (isNext) FontWeight.Bold else FontWeight.Medium
         )
     }
@@ -345,16 +379,16 @@ private fun RoundQuickAction(
                 .clip(CircleShape)
                 .background(
                     if (filledGold) Brush.linearGradient(listOf(Gold, Color(0xFFC9A227)))
-                    else Brush.linearGradient(listOf(pal.cardMuted, pal.cardMuted))
+                    else Brush.linearGradient(listOf(Color(0xFFFFFFFF).copy(alpha = 0.16f), Color(0xFFFFFFFF).copy(alpha = 0.07f)))
                 )
-                .then(if (filledGold) Modifier else Modifier.border(1.dp, pal.line, CircleShape))
+                .then(if (filledGold) Modifier else Modifier.border(1.dp, Gold.copy(alpha = 0.45f), CircleShape))
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
-            icon(if (filledGold) EmeraldDark else Emerald)
+            icon(if (filledGold) EmeraldDark else Gold)
         }
         Spacer(Modifier.height((5 * s).dp))
-        Text(label, style = HidayahType.Caption.copy(fontSize = sp(12f)), color = pal.ink, maxLines = 1)
+        Text(label, style = HidayahType.Caption.copy(fontSize = sp(12f), fontWeight = FontWeight.SemiBold), color = Cream, maxLines = 1)
     }
 }
 
@@ -377,7 +411,7 @@ private fun AyahOfDayCard(viewModel: HidayahViewModel, s: Float, modifier: Modif
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = "image/png"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_TEXT, shareText)
+                // শুধু ছবি — কোনো লেখা (EXTRA_TEXT) যাবে না
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             context.startActivity(Intent.createChooser(intent, "আয়াত শেয়ার করুন"))
@@ -391,12 +425,58 @@ private fun AyahOfDayCard(viewModel: HidayahViewModel, s: Float, modifier: Modif
         android.widget.Toast.makeText(context, "টেক্সট কপি হয়েছে", android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    Card(
-        shape = HidayahShapes.Large,
-        colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        modifier = modifier.fillMaxWidth()
-    ) {
+    // ---------- সেকশন হেডার — টগল/শেয়ার বোতাম কার্ডের বাইরে ----------
+    Column(modifier.fillMaxWidth()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dpv(2f))
+                .padding(bottom = dpv(6f)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "আজকের আয়াত",
+                style = HidayahType.TitleSans.copy(fontSize = sp(15f)),
+                color = pal.ink,
+                modifier = Modifier.weight(1f)
+            )
+            // টেক্সট কপি — নীরব আইকন বৃত্ত
+            Box(
+                Modifier
+                    .size(dpv(30f))
+                    .clip(CircleShape)
+                    .border(1.dp, pal.line, CircleShape)
+                    .clickable(onClick = ::copyText),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Filled.ContentCopy, contentDescription = "টেক্সট কপি", tint = pal.sub, modifier = Modifier.size(dpv(14f)))
+            }
+            Spacer(Modifier.width(dpv(8f)))
+            // শেয়ার — সোনালি পিল (শুধু ছবি যাবে)
+            Row(
+                Modifier
+                    .clip(HidayahShapes.Pill)
+                    .background(Brush.linearGradient(listOf(Gold, Color(0xFFC9A227))))
+                    .clickable(onClick = ::shareImage)
+                    .padding(horizontal = dpv(13f), vertical = dpv(7f)),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.Share, contentDescription = "শেয়ার", tint = EmeraldDark, modifier = Modifier.size(dpv(14f)))
+                Spacer(Modifier.width(dpv(6f)))
+                Text(
+                    "শেয়ার",
+                    style = HidayahType.BodyMedium.copy(fontSize = sp(12f), fontWeight = FontWeight.Bold),
+                    color = EmeraldDark
+                )
+            }
+        }
+
+        Card(
+            shape = HidayahShapes.Large,
+            colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            modifier = Modifier.weight(1f).fillMaxWidth()
+        ) {
         Box(Modifier.fillMaxSize()) {
             AyahCardArtwork(Modifier.fillMaxSize())
 
@@ -407,15 +487,6 @@ private fun AyahOfDayCard(viewModel: HidayahViewModel, s: Float, modifier: Modif
                     .padding(horizontal = dpv(18f), vertical = dpv(9f)),
                 verticalArrangement = Arrangement.Center
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    GoldSparkle(Modifier.size(dpv(14f)))
-                    Spacer(Modifier.width(dpv(7f)))
-                    Text(
-                        "আজকের আয়াত",
-                        style = HidayahType.Overline.copy(color = Gold, fontSize = sp(10.5f), letterSpacing = 1.7.sp)
-                    )
-                }
-                Spacer(Modifier.height(dpv(5f)))
                 Text(
                     ayah.arabic,
                     style = HidayahType.ArabicLarge.copy(fontSize = sp(22.5f), lineHeight = (34 * s).sp),
@@ -427,8 +498,13 @@ private fun AyahOfDayCard(viewModel: HidayahViewModel, s: Float, modifier: Modif
                 Spacer(Modifier.height(dpv(3f)))
                 Text(
                     ayah.bengali,
-                    style = HidayahType.Body.copy(fontSize = sp(12f), lineHeight = (18 * s).sp),
-                    color = Color(0xFFD3E4D7),
+                    style = HidayahType.Body.copy(
+                        fontFamily = NotoSerifBengali,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = sp(13f),
+                        lineHeight = (21 * s).sp
+                    ),
+                    color = Color(0xFFD7E7DA),
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     modifier = Modifier.fillMaxWidth()
@@ -436,7 +512,11 @@ private fun AyahOfDayCard(viewModel: HidayahViewModel, s: Float, modifier: Modif
                 Spacer(Modifier.height(dpv(5f)))
                 Text(
                     ayah.reference,
-                    style = HidayahType.Caption.copy(fontSize = sp(11f)),
+                    style = HidayahType.Caption.copy(
+                        fontFamily = NotoSerifBengali,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = sp(11.5f)
+                    ),
                     color = GoldSoft,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -450,39 +530,7 @@ private fun AyahOfDayCard(viewModel: HidayahViewModel, s: Float, modifier: Modif
                 )
             }
 
-            // ---------- actions (excluded from the shared image) ----------
-            Row(
-                Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = dpv(10f), end = dpv(10f)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // copy text
-                Box(
-                    Modifier
-                        .size(dpv(34f))
-                        .clip(CircleShape)
-                        .border(1.dp, Gold.copy(alpha = 0.75f), CircleShape)
-                        .clickable(onClick = ::copyText),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = "টেক্সট কপি", tint = Gold, modifier = Modifier.size(dpv(16f)))
-                }
-                Spacer(Modifier.width(dpv(8f)))
-                // share image (default) — gold pill
-                Row(
-                    Modifier
-                        .clip(HidayahShapes.Pill)
-                        .background(Brush.linearGradient(listOf(Gold, Color(0xFFC9A227))))
-                        .clickable(onClick = ::shareImage)
-                        .padding(horizontal = dpv(14f), vertical = dpv(8f)),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Filled.Share, contentDescription = "শেয়ার", tint = EmeraldDark, modifier = Modifier.size(dpv(15f)))
-                    Spacer(Modifier.width(dpv(6f)))
-                    Text("শেয়ার", style = HidayahType.BodyMedium.copy(fontSize = sp(12.5f), fontWeight = FontWeight.Bold), color = EmeraldDark)
-                }
-            }
+        }
         }
     }
 }
