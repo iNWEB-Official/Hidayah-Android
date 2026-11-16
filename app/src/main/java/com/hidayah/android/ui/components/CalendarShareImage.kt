@@ -89,7 +89,7 @@ object CalendarShareImage {
         val bismillah = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif; textSize = 26f; color = gold; textAlign = Paint.Align.CENTER
         }
-        c.drawText("বিসমিল্লাহির রাহমানির রাহিম", cx, 86f, bismillah)
+        c.drawText("বিসমিল্লাহির রাহমানির রাহিম", cx, 68f, bismillah)
 
         // ===== কেন্দ্র-ব্লক: kicker → brand (বিসমিল্লাহ ও © বাদে সব) =====
         val (hy, hm, hd) = HijriDates.gregorianToHijri(date)
@@ -169,7 +169,7 @@ object CalendarShareImage {
         }
 
         // কেন্দ্র-গণনা: বিসমিল্লাহের নিচ (96) থেকে ©-এর উপর (706) পর্যন্ত ব্যান্ডের মাঝে
-        val bandTop = 96f
+        val bandTop = 78f
         val bandBottom = 706f
         val blockH = elements.sumOf { (it.first * 10f).toInt() } / 10f
         var y = bandTop + ((bandBottom - bandTop) - blockH) / 2f
@@ -179,7 +179,7 @@ object CalendarShareImage {
         val copyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSansSemi; textSize = 20f; color = 0x8CD4AF37.toInt(); letterSpacing = 0.30f; textAlign = Paint.Align.CENTER
         }
-        c.drawText("© iNWEB Official", cx, h - 26f, copyPaint)
+        c.drawText("© iNWEB Official", cx, h - 44f, copyPaint)
 
         val dir = File(context.cacheDir, "shared").apply { mkdirs() }
         val file = File(dir, "hidayah-calendar-card.png")
