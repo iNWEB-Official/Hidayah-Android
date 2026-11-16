@@ -28,6 +28,7 @@ data class SettingsState(
     val gpsLatitude: Double = 0.0,
     val gpsLongitude: Double = 0.0,
     val gpsLabel: String = "", // রিভার্স-জিওকোডেড স্থান-নাম; খালি/ব্যর্থ হলে "বর্তমান অবস্থান"
+    val language: String = "system", // "system" | "bn" | "en"
     val userName: String = "",
     val profileImagePath: String = "" // অ্যাপ-প্রাইভেট স্টোরেஜের পরম পাথ; খালি মানে ডিফল্ট আভাতার
 )
@@ -56,6 +57,7 @@ class SettingsStore(context: Context) {
         val GPS_LAT = doublePreferencesKey("gps_latitude")
         val GPS_LNG = doublePreferencesKey("gps_longitude")
         val GPS_LABEL = stringPreferencesKey("gps_label")
+        val LANGUAGE = stringPreferencesKey("app_language")
         val USER_NAME = stringPreferencesKey("user_name")
         val PROFILE_IMAGE_PATH = stringPreferencesKey("profile_image_path")
     }
@@ -83,6 +85,7 @@ class SettingsStore(context: Context) {
             gpsLatitude = p[Keys.GPS_LAT] ?: 0.0,
             gpsLongitude = p[Keys.GPS_LNG] ?: 0.0,
             gpsLabel = p[Keys.GPS_LABEL] ?: "",
+            language = p[Keys.LANGUAGE] ?: "system",
             userName = p[Keys.USER_NAME] ?: "",
             profileImagePath = p[Keys.PROFILE_IMAGE_PATH] ?: ""
         )
@@ -122,6 +125,7 @@ class SettingsStore(context: Context) {
     }
     suspend fun resetTasbihCount() = store.edit { it[Keys.TASBIH_COUNT] = 0 }
     suspend fun setTheme(value: String) = store.edit { it[Keys.THEME] = value }
+    suspend fun setLanguage(value: String) = store.edit { it[Keys.LANGUAGE] = value }
     suspend fun setUserName(value: String) = store.edit { it[Keys.USER_NAME] = value.trim().take(60) }
     suspend fun setProfileImagePath(value: String) = store.edit { it[Keys.PROFILE_IMAGE_PATH] = value }
 

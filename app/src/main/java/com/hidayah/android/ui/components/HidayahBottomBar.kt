@@ -15,20 +15,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import androidx.annotation.StringRes
+import com.hidayah.android.R
 import com.hidayah.android.ui.theme.*
 
 private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
-data class TabSpec(val route: String, val label: String, val iconKind: IconKind)
+data class TabSpec(val route: String, @StringRes val labelRes: Int, val iconKind: IconKind)
 
 enum class IconKind { Home, Quran, Qibla, Tasbih, Settings }
 
 val hidayahTabs = listOf(
-    TabSpec("home", "হোম", IconKind.Home),
-    TabSpec("quran", "কুরআন", IconKind.Quran),
-    TabSpec("qibla", "কিবলা", IconKind.Qibla),
-    TabSpec("tasbih", "তসবিহ", IconKind.Tasbih),
-    TabSpec("settings", "সেটিংস", IconKind.Settings)
+    TabSpec("home", R.string.tab_home, IconKind.Home),
+    TabSpec("quran", R.string.tab_quran, IconKind.Quran),
+    TabSpec("qibla", R.string.tab_qibla, IconKind.Qibla),
+    TabSpec("tasbih", R.string.tab_tasbih, IconKind.Tasbih),
+    TabSpec("settings", R.string.tab_settings, IconKind.Settings)
 )
 
 /** Bottom navigation from mockup 01-home: cream bar, emerald active tab with a short gold top indicator. */
@@ -59,7 +62,7 @@ fun HidayahBottomBar(currentRoute: String?, onTab: (String) -> Unit) {
                         TabIcon(tab.iconKind, tint = if (selected) pal.brand else pal.dotInactive, size = 22)
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            tab.label,
+                            stringResource(tab.labelRes),
                             fontSize = 11.5.sp,
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                             color = if (selected) pal.brand else pal.dotInactive,

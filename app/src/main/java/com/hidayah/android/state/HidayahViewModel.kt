@@ -108,6 +108,7 @@ class HidayahViewModel(app: Application) : AndroidViewModel(app) {
     fun setTasbihTarget(value: Int) = viewModelScope.launch { settingsStore.setTasbihTarget(value) }
     fun setTheme(value: String) = viewModelScope.launch { settingsStore.setTheme(value) }
     fun setUserName(value: String) = viewModelScope.launch { settingsStore.setUserName(value) }
+    fun setLanguage(value: String) = viewModelScope.launch { settingsStore.setLanguage(value) }
     fun setProfileImagePath(value: String) = viewModelScope.launch { settingsStore.setProfileImagePath(value) }
 
     // --- settings actions ---

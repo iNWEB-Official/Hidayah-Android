@@ -39,6 +39,7 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
     var showCitySheet by remember { mutableStateOf(false) }
     var showMadhabSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
+    var showLanguageSheet by remember { mutableStateOf(false) }
 
     val requestGpsCity = rememberGpsLocationRequester { fix ->
         if (fix != null) {
@@ -97,6 +98,18 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
                         else -> "সিস্টেম অনুযায়ী"
                     },
                     onClick = { showThemeSheet = true },
+                    trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = pal.sub) }
+                )
+                HorizontalDivider(color = pal.line, thickness = 0.6.dp)
+                SettingsRow(
+                    icon = Icons.Filled.Language,
+                    title = "ভাষা",
+                    subtitle = when (settings.language) {
+                        "bn" -> "বাংলা"
+                        "en" -> "English (অনুবাদ চলমান)"
+                        else -> "সিস্টেম অনুযায়ী (বাংলা)"
+                    },
+                    onClick = { showLanguageSheet = true },
                     trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = pal.sub) }
                 )
             }
@@ -190,6 +203,51 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
             )
             Spacer(Modifier.height(28.dp))
         }
+    }
+
+    if (showLanguageSheet) {
+        val languageOptions = listOf(
+            Triple("system", "সিস্টেম অনুযায়ী", "ফোন সেটিংসের ভাষা অনুসরণ করবে"),
+            Triple("bn", "বাংলা", "অ্যাপের ভাষা বাংলা (ডিফল্ট)"),
+            Triple("en", "English", "অনুবাদ চলমান — নিচের বারের লেবেল এখনই বদলাবে")
+        )
+        AlertDialog(
+            onDismissRequest = { showLanguageSheet = false },
+            containerColor = pal.card,
+            title = { Text("ভাষা বাছুন", style = HidayahType.H2, color = pal.ink) },
+            text = {
+                Column {
+                    languageOptions.forEach { (key, label, caption) ->
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(HidayahShapes.Medium)
+                                .clickable { applyLanguage(key, viewModel, context) }
+                                .padding(vertical = 10.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = settings.language == key,
+                                onClick = { applyLanguage(key, viewModel, context) },
+                                colors = androidx.compose.material3.RadioButtonDefaults.colors(
+                                    selectedColor = Emerald, unselectedColor = pal.sub
+                                )
+                            )
+                            Spacer(Modifier.width(10.dp))
+                            Column {
+                                Text(label, style = HidayahType.BodyMedium, color = pal.ink)
+                                Text(caption, style = HidayahType.Caption.copy(fontSize = 11.sp), color = pal.sub)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageSheet = false }) {
+                    Text("সম্পন্ন", style = HidayahType.BodyMedium, color = pal.brand)
+                }
+            }
+        )
     }
 
     if (showThemeSheet) {
@@ -395,5 +453,22 @@ private fun MadhabOption(title: String, subtitle: String, selected: Boolean, onC
             }
             if (selected) Icon(Icons.Filled.Check, contentDescription = null, tint = Gold)
         }
+    }
+}
+
+
+/** ভাষা প্রয়োগ — DataStore + AppCompat per-app locale (API 25 পর্যন্ত autoStoreLocales দিয়ে)। */
+private fun applyLanguage(value: String, viewModel: HidayahViewModel, context: android.content.Context) {
+    viewModel.setLanguage(value)
+    val tags = when (value) {
+        "bn" -> "bn"
+        "en" -> "en"
+        else -> ""
+    }
+    androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+        androidx.core.os.LocaleListCompat.forLanguageTags(tags)
+    )
+    if (value == "en") {
+        android.widget.Toast.makeText(context, "English UI আসছে — পুরো অনুবাদের কাজ চলছে", android.widget.Toast.LENGTH_SHORT).show()
     }
 }

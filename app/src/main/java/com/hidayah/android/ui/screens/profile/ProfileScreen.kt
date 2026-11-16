@@ -181,7 +181,6 @@ fun ProfileScreen(
             DetailRow(Icons.Filled.Place, "অবস্থান", cityName) { onOpenSettings() }
             DetailRow(Icons.Filled.Mosque, "মাযহাব", madhab) { onOpenSettings() }
             DetailRow(Icons.Filled.DarkMode, "থিম", themeLabel) { onOpenSettings() }
-            DetailRow(Icons.Filled.Language, "ভাষা", "বাংলা") {}
         }
 
         Spacer(Modifier.height(26.dp))
