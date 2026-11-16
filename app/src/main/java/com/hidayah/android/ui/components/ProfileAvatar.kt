@@ -96,10 +96,10 @@ fun ProfileAvatar(
     }
 }
 
-/** পিক করা ছবি অ্যাপ-প্রাইভেট `filesDir/profile/avatar.jpg`-এ কপি করে পরম পাথ ফেরত দেয় (null = ব্যর্থতা)। */
-fun saveProfilePhoto(context: Context, uri: Uri): String? = runCatching {
+/** পিক করা ছবি অ্যাপ-প্রাইভেট `filesDir/profile/<fileName>`-এ কপি করে পরম পাথ ফেরত দেয় (null = ব্যর্থতা)। */
+fun saveProfilePhoto(context: Context, uri: Uri, fileName: String = "avatar.jpg"): String? = runCatching {
     val dir = File(context.filesDir, "profile").apply { mkdirs() }
-    val out = File(dir, "avatar.jpg")
+    val out = File(dir, fileName)
     context.contentResolver.openInputStream(uri)!!.use { input ->
         out.outputStream().use { output -> input.copyTo(output) }
     }

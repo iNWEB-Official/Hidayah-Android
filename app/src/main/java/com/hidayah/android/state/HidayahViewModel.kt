@@ -27,7 +27,10 @@ data class HomeUi(
 
 class HidayahViewModel(app: Application) : AndroidViewModel(app) {
 
-    val settingsStore = SettingsStore(app)
+    val settingsStore = SettingsStore(app).also { store ->
+        // সদস্যপদ-তারিখ — প্রথমবার অ্যাপ খোলার সময় লিখা হয়
+        viewModelScope.launch { store.ensureMemberSince() }
+    }
     private val prayerCalculator = PrayerTimeCalculator()
     private val quranRepository = QuranRepository(app)
     private val duaRepository = DuaRepository(app)
@@ -110,6 +113,8 @@ class HidayahViewModel(app: Application) : AndroidViewModel(app) {
     fun setUserName(value: String) = viewModelScope.launch { settingsStore.setUserName(value) }
     fun setLanguage(value: String) = viewModelScope.launch { settingsStore.setLanguage(value) }
     fun setProfileImagePath(value: String) = viewModelScope.launch { settingsStore.setProfileImagePath(value) }
+    fun setProfileBio(value: String) = viewModelScope.launch { settingsStore.setProfileBio(value) }
+    fun setCoverImagePath(value: String) = viewModelScope.launch { settingsStore.setCoverImagePath(value) }
 
     // --- settings actions ---
     fun setHanafiAsr(v: Boolean) = viewModelScope.launch { settingsStore.setHanafiAsr(v) }

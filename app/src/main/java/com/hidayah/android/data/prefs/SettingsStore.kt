@@ -30,7 +30,10 @@ data class SettingsState(
     val gpsLabel: String = "", // রিভার্স-জিওকোডেড স্থান-নাম; খালি/ব্যর্থ হলে "বর্তমান অবস্থান"
     val language: String = "system", // "system" | "bn" | "en"
     val userName: String = "",
-    val profileImagePath: String = "" // অ্যাপ-প্রাইভেট স্টোরেஜের পরম পাথ; খালি মানে ডিফল্ট আভাতার
+    val profileImagePath: String = "", // "default:N" | অ্যাপ-প্রাইভেট পরম পাথ; খালি মানে Person আইকন
+    val profileBio: String = "", // প্রোফাইলে ছোট পরিচয়/বায়ো
+    val coverImagePath: String = "", // খালি = ডিফল্ট মসজিদ-আর্চ কভার; নয়তো অ্যাপ-প্রাইভেট পাথ
+    val memberSince: Long = 0L // epoch millis — প্রথমবার অ্যাপ খোলার সময় সেট হয়
 )
 
 class SettingsStore(context: Context) {
@@ -60,6 +63,9 @@ class SettingsStore(context: Context) {
         val LANGUAGE = stringPreferencesKey("app_language")
         val USER_NAME = stringPreferencesKey("user_name")
         val PROFILE_IMAGE_PATH = stringPreferencesKey("profile_image_path")
+        val PROFILE_BIO = stringPreferencesKey("profile_bio")
+        val COVER_IMAGE_PATH = stringPreferencesKey("cover_image_path")
+        val MEMBER_SINCE = longPreferencesKey("member_since")
     }
 
     val settings: Flow<SettingsState> = store.data.map { p ->
@@ -87,7 +93,10 @@ class SettingsStore(context: Context) {
             gpsLabel = p[Keys.GPS_LABEL] ?: "",
             language = p[Keys.LANGUAGE] ?: "system",
             userName = p[Keys.USER_NAME] ?: "",
-            profileImagePath = p[Keys.PROFILE_IMAGE_PATH] ?: ""
+            profileImagePath = p[Keys.PROFILE_IMAGE_PATH] ?: "",
+            profileBio = p[Keys.PROFILE_BIO] ?: "",
+            coverImagePath = p[Keys.COVER_IMAGE_PATH] ?: "",
+            memberSince = p[Keys.MEMBER_SINCE] ?: 0L
         )
     }
 
@@ -128,6 +137,10 @@ class SettingsStore(context: Context) {
     suspend fun setLanguage(value: String) = store.edit { it[Keys.LANGUAGE] = value }
     suspend fun setUserName(value: String) = store.edit { it[Keys.USER_NAME] = value.trim().take(60) }
     suspend fun setProfileImagePath(value: String) = store.edit { it[Keys.PROFILE_IMAGE_PATH] = value }
+    suspend fun setProfileBio(value: String) = store.edit { it[Keys.PROFILE_BIO] = value.trim().take(100) }
+    suspend fun setCoverImagePath(value: String) = store.edit { it[Keys.COVER_IMAGE_PATH] = value }
+    /** প্রথমবার অ্যাপ খোলার সময় সদস্যপদ-তারিখ লিখে রাখে; এরপর আর বদলায় না। */
+    suspend fun ensureMemberSince() = store.edit { if ((it[Keys.MEMBER_SINCE] ?: 0L) == 0L) it[Keys.MEMBER_SINCE] = System.currentTimeMillis() }
 
     suspend fun toggleFavoriteDua(id: Int) = store.edit { p ->
         val current = p[Keys.FAVORITE_DUAS].orEmpty().split(',').mapNotNull { it.trim().toIntOrNull() }.toMutableSet()

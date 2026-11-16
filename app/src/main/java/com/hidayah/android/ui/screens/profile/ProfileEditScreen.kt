@@ -18,12 +18,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hidayah.android.state.HidayahViewModel
+import com.hidayah.android.R
+import com.hidayah.android.util.BnDigits
 import com.hidayah.android.ui.components.*
 import com.hidayah.android.ui.theme.*
 
@@ -44,6 +47,7 @@ fun ProfileEditScreen(
     val context = LocalContext.current
 
     var nameDraft by remember(settings.userName) { mutableStateOf(settings.userName) }
+    var bioDraft by remember(settings.profileBio) { mutableStateOf(settings.profileBio) }
 
     // গ্যালারি থেকে ছবি — অনুমতি লাগে না (Photo Picker), অ্যাপ-প্রাইভেট ফাইলে সংরক্ষিত হয়
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -59,6 +63,22 @@ fun ProfileEditScreen(
     }
     val launchGallery = {
         photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+
+    // কভার ছবি — গ্যালারি থেকে (অ্যাপ-প্রাইভেট cover.jpg-এ সেভ)
+    val coverPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { u ->
+            val path = saveProfilePhoto(context, u, "cover.jpg")
+            if (path != null) {
+                viewModel.setCoverImagePath(path)
+                Toast.makeText(context, "কভার ছবি সেট হয়েছে", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "কভার সেভ করা যায়নি", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    val launchCoverPicker = {
+        coverPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
     Column(Modifier.fillMaxSize().background(pal.background)) {
@@ -81,7 +101,7 @@ fun ProfileEditScreen(
                     modifier = Modifier.weight(1f)
                 )
                 TextButton(
-                    onClick = { viewModel.setUserName(nameDraft); onBack() }
+                    onClick = { viewModel.setUserName(nameDraft); viewModel.setProfileBio(bioDraft); onBack() }
                 ) {
                     Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(17.dp), tint = pal.brand)
                     Spacer(Modifier.width(4.dp))
@@ -98,6 +118,50 @@ fun ProfileEditScreen(
                 .padding(horizontal = 18.dp)
         ) {
             Spacer(Modifier.height(16.dp))
+
+            // ============ সেকশন: কভার ছবি ============
+            SectionLabel("কভার ছবি")
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "নিজের পছন্দমতো কভার ছবি দিন (ফেসবুকের মতো), অথবা ডিফল্ট আর্চ কভার",
+                style = HidayahType.Caption, color = pal.sub
+            )
+            Spacer(Modifier.height(10.dp))
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(112.dp)
+                    .clip(HidayahShapes.Medium)
+            ) {
+                CoverImage(
+                    path = settings.coverImagePath,
+                    defaultRes = R.drawable.bg_next_prayer,
+                    modifier = Modifier.fillMaxSize(),
+                    contentDescription = "কভার ছবি"
+                )
+                // ক্যামেরা-বাটন — ট্যাপে সরাসরি গ্যালারি
+                Box(
+                    Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(8.dp)
+                        .size(38.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(Color(0xCC000000))
+                        .clickable(onClick = launchCoverPicker),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.PhotoCamera, contentDescription = "কভার বদলান", tint = Cream, modifier = Modifier.size(20.dp))
+                }
+            }
+            if (settings.coverImagePath.isNotBlank()) {
+                TextButton(onClick = { viewModel.setCoverImagePath("") }) {
+                    Icon(Icons.Filled.Restore, contentDescription = null, modifier = Modifier.size(17.dp), tint = pal.sub)
+                    Spacer(Modifier.width(6.dp))
+                    Text("ডিফল্ট কভারে ফিরুন", style = HidayahType.Caption, color = pal.sub)
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
 
             // ============ সেকশন: প্রোফাইল ছবি ============
             SectionLabel("প্রোফাইল ছবি")
@@ -154,11 +218,26 @@ fun ProfileEditScreen(
                 singleLine = true,
                 placeholder = { Text("যেমন: রাহিম উদ্দিন") },
                 label = { Text("আপনার নাম") },
-                supportingText = { Text("খালি রাখলে হোমপেজে 'অতিথি' দেখাবে (${nameDraft.length}/৬০)") },
+                supportingText = { Text("খালি রাখলে হোমপেজে 'অতিথি' দেখাবে (${BnDigits.of(nameDraft.length)}/৬০)") },
                 shape = HidayahShapes.Medium
             )
 
             Spacer(Modifier.height(20.dp))
+
+            // ============ সেকশন: বায়ো ============
+            SectionLabel("বায়ো")
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = bioDraft,
+                onValueChange = { if (it.length <= 100) bioDraft = it },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 84.dp),
+                minLines = 2,
+                maxLines = 3,
+                placeholder = { Text("যেমন: আল-কুরআনের খাদেম, কুরআন শেখাচ্ছেন…") },
+                label = { Text("বায়ো/ছোট পরিচয়") },
+                supportingText = { Text("${BnDigits.of(bioDraft.length)} / ${BnDigits.of(100)}") },
+                shape = HidayahShapes.Medium
+            )
 
             // ============ সেকশন: শর্টকাট ============
             SectionLabel("আরও সেটিংস")
