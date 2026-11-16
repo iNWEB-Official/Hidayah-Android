@@ -1,20 +1,23 @@
-# iNWEB Official — হিদায়াহ 📦 Build (শুধু বিল্ড — টেস্ট নেই)
-# রান: শুধু প্রয়োজন হলে হাত দিয়ে Actions → Build → Run workflow
-# (টেস্ট চালাতে Test workflow-টি ব্যবহার করুন; দুটো একসাথে না চালিয়ে সময় বাঁচান)
-name: Build
+# iNWEB Official — হিদায়াহ 📦 Debug Build (শুধু debug — টেস্ট নেই)
+# রান: শুধু প্রয়োজন হলে হাত দিয়ে Actions → Debug Build → Run workflow
+#
+# ⚠️ নীতি (২০২৬-১৬-১১ থেকে): পাবলিক রিলিজ না হওয়া পর্যন্ত **কোনো রিলিজ ফাইল (signed release APK) তৈরি করা হবে না**।
+# ব্যবহারকারী নিজে প্রতিটি পরিবর্তনের পর অ্যাপটি ব্যবহার করে দেখবেন — তার জন্য শুধু **debug APK** তৈরি হয়
+# (debug keystore দিয়ে স্বাক্ষরিত, ফোনে সরাসরি ইনস্টল করা যায়)।
+# প্রতিটি পরিবর্তনে versionName/versionCode +১ (দেখুন: app/build.gradle.kts, CHANGELOG.md)।
+# টেস্ট চালাতে Test workflow-টি ব্যবহার করুন; দুটো একসাথে না চালিয়ে সময় বাঁচান।
+
+name: Debug Build
 
 on:
   workflow_dispatch:
-  # চাইলে পরে চালু করতে পারেন:
-  # push:
-  #   branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   build:
-    name: Build & Sign
+    name: Debug Build
     runs-on: ubuntu-latest
 
     steps:
@@ -38,59 +41,21 @@ jobs:
         with:
           gradle-version: "8.4"
 
-      # কীস্টোর কখনো রিপোতে নেই — GitHub Secrets থেকে base64-এ ডিকোড হয় (private repo: iNWEB-DOCS → secure/KEYSTORE.md)
-      - name: 🔑 রিলিজ কীস্টোর (secrets থেকে ডিকোড)
-        env:
-          HYD_KEYSTORE_B64: ${{ secrets.HYD_KEYSTORE_B64 }}
-        run: |
-          if [ -n "$HYD_KEYSTORE_B64" ]; then
-            DEST="$RUNNER_TEMP/hidayah-release.p12"
-            echo "$HYD_KEYSTORE_B64" | base64 -d > "$DEST"
-            chmod 600 "$DEST"
-            echo "HYD_KEYSTORE_PATH=$DEST" >> "$GITHUB_ENV"
-            echo "HYD_KEYSTORE_OK=true" >> "$GITHUB_ENV"
-            echo "✅ কীস্টোর ডিকোড হয়েছে ($(stat -c%s "$DEST") bytes)"
-          else
-            echo "HYD_KEYSTORE_OK=false" >> "$GITHUB_ENV"
-            echo "⚠️ HYD_KEYSTORE_B64 secret নেই — Release APK unsigned হবে"
-          fi
-
-      - name: 📦 Debug APK
+      - name: 📦 Debug APK (debug key দিয়ে — ইনস্টলযোগ্য)
         run: gradle :app:assembleDebug --no-daemon
-
-      - name: 📦 Release APK (signed — secrets থাকলে; R8/minify যাচাই)
-        env:
-          HYD_KEYSTORE_PASSWORD: ${{ secrets.HYD_KEYSTORE_PASSWORD }}
-          HYD_KEY_ALIAS: ${{ secrets.HYD_KEY_ALIAS }}
-          HYD_KEY_PASSWORD: ${{ secrets.HYD_KEY_PASSWORD }}
-        run: gradle :app:assembleRelease --no-daemon
-
-      - name: 🖊️ Release স্বাক্ষর যাচাই (cert SHA-256 == docs/secure/KEYSTORE.md)
-        if: env.HYD_KEYSTORE_OK == 'true'
-        run: |
-          set -euo pipefail
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
-          APK=app/build/outputs/apk/release/app-release.apk
-          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/certs.txt
-          EXPECTED="3ae87f2001011a59b255e111e5a4414cd98a2b511aa2ebe8d2ac4b7732d0ec62"
-          grep -qi "$EXPECTED" /tmp/certs.txt \
-            && echo "✅ স্বাক্ষর OK — হিদায়াহর রিলিজ কী (3AE8…EC62)" \
-            || { echo "❌ স্বাক্ষর মিলছে না! ভুল কীস্টোর।"; exit 1; }
 
       - name: 🔎 Verify APK badging (versionName/versionCode)
         run: |
           set -euo pipefail
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
           APK=app/build/outputs/apk/debug/app-debug.apk
-          "$AAPT" dump badging "$APK" | grep -q "versionCode='20260008'"
-          "$AAPT" dump badging "$APK" | grep -q "versionName='2026.00.08'"
-          echo "✅ badging OK: versionCode=20260008 versionName=2026.00.08"
+          "$AAPT" dump badging "$APK" | grep -q "versionCode='20260009'"
+          "$AAPT" dump badging "$APK" | grep -q "versionName='2026.00.09'"
+          echo "✅ badging OK: versionCode=20260009 versionName=2026.00.09"
 
-      - name: ⬆️ Upload APK artifacts
+      - name: ⬆️ Upload debug APK artifact (১৪ দিনের রিটেনশন)
         uses: actions/upload-artifact@v4
         with:
-          name: hidayah-apk-2026.00.08
-          path: |
-            app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/release/*.apk
-          retention-days: 30
+          name: hidayah-debug-2026.00.09
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
