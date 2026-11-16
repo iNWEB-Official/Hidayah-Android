@@ -1,0 +1,31 @@
+# iNWEB Official — হিদায়াহ 🔖 Release Please (অটো ভার্সনিং + Release PR)
+# ⚠️ পাবলিক রিলিজের আগে **নিষ্ক্রিয় (dormant)** — চলার জন্য repo variable
+#    PUBLIC_RELEASE_ENABLED = 'true' (Settings → Secrets and variables → Actions → Variables) লাগবে।
+# চালু হলে: প্রতিটি push-এর সাথে এটি স্বয়ংক্রিয়ভাবে একটি "Release PR" তৈরি/হালনাগাদ করে
+# (semver bump + CHANGELOG + versionName)। PR **মার্জ করলেই** tag + GitHub Release তৈরি হয়,
+# যার পুশ-এ `release-build.yml` চালু হয় (production environment-এর অনুমোদনসহ)।
+# ব্যবহারকারীকে করতে হবে: কোড → push → একবার Release PR মার্জ। বাকি সব GitHub নিজে করবে।
+
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: Release Please
+    if: vars.PUBLIC_RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          # GITHUB_TOKEN দিয়ে বানানো PR-এ CI auto-run হয় না; রিলিজ-ভ্যালিডেশনের জন্য
+          # RELEASE_PLEASE_TOKEN (repo scope সহ PAT বা GitHub App token) যোগ করাই ভালো।
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}

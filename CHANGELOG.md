@@ -2,6 +2,26 @@
 
 ভার্সনিং নিয়ম ও রিলিজ প্রক্রিয়া: iNWEB-DOCS/Hidayah-Android → `guides/VERSIONING.md` দেখুন। প্রতিটি রিলিজের আগে এই ফাইল হালনাগাদ করতে হবে।
 
+## [1.0.0] — ২০২৬-১৬-১১ — (অপ্রকাশিত · পাবলিক রিলিজের অপেক্ষায়)
+
+> **নীতি অব্যাহত:** পাবলিক রিলিজের আগে **কোনো রিলিজ ফাইল নয়** — CI শুধু debug APK তৈরি করে। **প্রতিটি পরিবর্তন = versionCode +১**। versionName এখন **semver** (প্রথম পাবলিক রিলিজ হবে **1.0.0** — release-please manifest থেকে)।
+
+### 🔄 ভার্সনিং স্কিম পরিবর্তন (Re-scheme)
+- `versionName`: **2026.00.10 → 1.0.0** (semver) — `x-release-please-version` মার্কার যুক্ত; পাবলিক দিনে release-please এটি স্বয়ংক্রিয়ভাবে বাম্প করবে।
+- `versionCode`: **20260011** — monotonic সিরিজ (+১ প্রতি পরিবর্তনে) অব্যাহত। Android শুধু এটিকেই order হিসেবে দেখে; 1.0.0-এ লাফ দিলেও **ডাউনগ্রেড হবে না**।
+- পুরনো debug APK যাদের ফোনে আছে (2026.00.10 বা তার কমে), তাদের একবার uninstall করে ১.০.০ ইনস্টল করতে হবে (debug key ↔ release key ভিন্ন বলে আগেই uninstall দরকার ছিল)।
+
+### 🤖 GitHub automation (পাবলিক-পরবর্তী — এখন **নিষ্ক্রিয়/dormant**)
+নতুন কাঠামো (তিন-ওয়ার্কফ্লো, single responsibility, least privilege):
+- **`test.yml`** — Compile + Test (push-এ চলে)। *অপরিবর্তিত*
+- **`debug-build.yml`** (আগে `build.yml`) — Debug APK only; badging যাচাই + artifact ১৪ দিন। *রিলিজ ক্ষমতা নেই*
+- **`release-please.yml`** (নতুন) — push-এ **Release PR** তৈরি/হালনাগাদ (semver bump + CHANGELOG + versionName)। **নিষ্ক্রিয়**: `vars.PUBLIC_RELEASE_ENABLED == 'true'` না হলে চলেই না।
+- **`release-build.yml`** (নতুন) — শুধু `vX.Y.Z` tag-এ চালু; signed release APK → স্বাক্ষরযাচাই → badging (tag==versionName) → GitHub Release-এ APK আপলোড। **দুই স্তরের সুরক্ষা**: (১) `PUBLIC_RELEASE_ENABLED == 'true'` ভ্যারিয়েবল, (২) `environment: production` (required reviewers — অ্যাপ্রুভাল ছাড়া চালু হয় না)।
+- `release-please-config.json`, `.release-please-manifest.json` — semver `1.0.0` দিয়ে শুরু।
+
+**পাবলিক-প্রকাশের দিন (একমাত্র বাকি কাজ):** Settings → Environments → `production` তৈরি করে Required reviewers = নিজে
+⇒ তারপর repository variable **`PUBLIC_RELEASE_ENABLED=true`** সেট করুন ⇒ এরপর থেকে আপনি শুধু **কোড → push**; বাকি সব GitHub নিজে করবে (Release PR মার্জ বাদে)।
+
 ## [2026.00.10] — ২০২৬-১৬-১১ — (অপ্রকাশিত · পাবলিক রিলিজের অপেক্ষায়)
 
 > **নীতি অব্যাহত:** পাবলিক রিলিজের আগে **কোনো রিলিজ ফাইল নয়** — CI শুধু debug APK তৈরি করে (ইউজার নিজে টেস্ট করবেন); প্রতিটি পরিবর্তনে **+১ ভার্সন**।
