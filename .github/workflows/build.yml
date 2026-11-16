@@ -1,19 +1,20 @@
-# iNWEB Official — হিদায়াহ CI (test + build)
-# সব টেস্ট ও বিল্ড GitHub-এ হয় — লোকালে বিল্ড/রান করা হয় না।
-name: Build & Test
+# iNWEB Official — হিদায়াহ 📦 Build (শুধু বিল্ড — টেস্ট নেই)
+# রান: শুধু প্রয়োজন হলে হাত দিয়ে Actions → Build → Run workflow
+# (টেস্ট চালাতে Test workflow-টি ব্যবহার করুন; দুটো একসাথে না চালিয়ে সময় বাঁচান)
+name: Build
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+  # চাইলে পরে চালু করতে পারেন:
+  # push:
+  #   branches: [main]
 
 permissions:
   contents: read
 
 jobs:
   build:
-    name: Build & Test
+    name: Build & Sign
     runs-on: ubuntu-latest
 
     steps:
@@ -30,15 +31,14 @@ jobs:
         run: |
           SDKMGR="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           [ -x "$SDKMGR" ] || SDKMGR=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager | sort -V | tail -1)
-          echo "sdkmanager: $SDKMGR"
           yes | "$SDKMGR" "platforms;android-34" "build-tools;34.0.0" >/dev/null
 
-      - name: 🛠️ Setup Gradle 8.4 (distribution in gradle/wrapper)
+      - name: 🛠️ Setup Gradle 8.4
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.4"
 
-      # কীস্টোর কখনো রিপোতে নেই — GitHub Secrets থেকে base64-এ ডিকোড হয় (private repo: iNWEB-DOCS, docs/secure/KEYSTORE.md)
+      # কীস্টোর কখনো রিপোতে নেই — GitHub Secrets থেকে base64-এ ডিকোড হয় (private repo: iNWEB-DOCS → secure/KEYSTORE.md)
       - name: 🔑 রিলিজ কীস্টোর (secrets থেকে ডিকোড)
         env:
           HYD_KEYSTORE_B64: ${{ secrets.HYD_KEYSTORE_B64 }}
@@ -54,8 +54,6 @@ jobs:
             echo "HYD_KEYSTORE_OK=false" >> "$GITHUB_ENV"
             echo "⚠️ HYD_KEYSTORE_B64 secret নেই — Release APK unsigned হবে"
           fi
-      - name: 🧪 Unit tests
-        run: gradle :app:testDebugUnitTest --no-daemon --stacktrace
 
       - name: 📦 Debug APK
         run: gradle :app:assembleDebug --no-daemon
@@ -73,9 +71,7 @@ jobs:
           set -euo pipefail
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
           APK=app/build/outputs/apk/release/app-release.apk
-          echo "apksigner: $APKSIGNER"
           "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/certs.txt
-          # apksigner আউটপুট continuous lowercase hex (কোনো colon নেই)
           EXPECTED="3ae87f2001011a59b255e111e5a4414cd98a2b511aa2ebe8d2ac4b7732d0ec62"
           grep -qi "$EXPECTED" /tmp/certs.txt \
             && echo "✅ স্বাক্ষর OK — হিদায়াহর রিলিজ কী (3AE8…EC62)" \
@@ -86,8 +82,6 @@ jobs:
           set -euo pipefail
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
           APK=app/build/outputs/apk/debug/app-debug.apk
-          echo "aapt: $AAPT"
-          "$AAPT" dump badging "$APK" | grep -E "package: name='com.hidayah.android'" | sed 's/, /\n  /g'
           "$AAPT" dump badging "$APK" | grep -q "versionCode='20260007'"
           "$AAPT" dump badging "$APK" | grep -q "versionName='2026.00.07'"
           echo "✅ badging OK: versionCode=20260007 versionName=2026.00.07"
