@@ -219,7 +219,7 @@ fun ProfileScreen(
 
             // ============ পরিসংখ্যান (সত্যিকার ডেটা) ============
             Spacer(Modifier.height(16.dp))
-            Surface(shape = HidayahShapes.Card, color = pal.card) {
+            Surface(shape = HidayahShapes.Medium, color = pal.card) {
                 Row(
                     Modifier.fillMaxWidth().padding(vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
