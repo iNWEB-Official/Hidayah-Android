@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Hidayah</string>
+    <string name="greeting">Assalamu Alaikum,</string>
+    <string name="user_name">Rahim Uddin</string>
+    <string name="location">Dhaka, Bangladesh</string>
+    <string name="next_prayer">NEXT PRAYER</string>
+    <string name="todays_prayers">Today\u2019s Prayer Times</string>
+    <string name="full_schedule">Full schedule</string>
+    <string name="ayah_of_day">AYAH OF THE DAY</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_quran">Quran</string>
+    <string name="tab_qibla">Qibla</string>
+    <string name="tab_tasbih">Tasbih</string>
+    <string name="tab_settings">Settings</string>
+</resources>

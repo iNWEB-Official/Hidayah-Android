@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">হিদায়াহ</string>
+    <string name="greeting">আসসালামু আলাইকুম,</string>
+    <string name="user_name">রাহিম উদ্দিন</string>
+    <string name="location">ঢাকা, বাংলাদেশ</string>
+    <string name="next_prayer">পরবর্তী নামাজ</string>
+    <string name="todays_prayers">আজকের নামাজের সময়</string>
+    <string name="full_schedule">সম্পূর্ণ সূচী</string>
+    <string name="ayah_of_day">আজকের আয়াত</string>
+    <string name="tab_home">হোম</string>
+    <string name="tab_quran">কুরআন</string>
+    <string name="tab_qibla">কিবলা</string>
+    <string name="tab_tasbih">তসবিহ</string>
+    <string name="tab_settings">সেটিংস</string>
+</resources>

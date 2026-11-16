@@ -1,0 +1,23 @@
+# Gradle / build outputs
+.gradle/
+build/
+**/build/
+out/
+
+# Local machine config — never commit
+local.properties
+*.keystore
+*.jks
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.DS_Store
+
+# Kotlin
+.kotlin/
+
+# Captures / ADB
+captures/
+.externalNativeBuild/
+.cxx/
