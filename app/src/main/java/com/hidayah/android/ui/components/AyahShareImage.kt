@@ -174,7 +174,7 @@ object AyahShareImage {
         y += 14f
         c.drawText(ayah.reference, cx, y, refPaint)
 
-        // brand footer
+        // brand footer + © (সব শেয়ার-ইমেজে বাধ্যতামূলক)
         val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = serif
             textSize = 21f
@@ -182,8 +182,17 @@ object AyahShareImage {
             letterSpacing = 0.42f
             textAlign = Paint.Align.CENTER
         }
-        c.drawText("H I D A Y A H", cx, h - 66f, brandPaint)
-        c.drawPath(starPath(cx, h - 100f, 6f), spark)
+        c.drawText("H I D A Y A H", cx, h - 92f, brandPaint)
+        c.drawPath(starPath(cx, h - 126f, 6f), spark)
+
+        val copyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = serif
+            textSize = 20f
+            color = 0x8CD4AF37.toInt()
+            letterSpacing = 0.30f
+            textAlign = Paint.Align.CENTER
+        }
+        c.drawText("© iNWEB Official", cx, h - 32f, copyPaint)
 
         // write PNG
         val dir = File(context.cacheDir, "shared").apply { mkdirs() }

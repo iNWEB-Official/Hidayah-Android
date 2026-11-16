@@ -110,9 +110,9 @@ fun CalendarScreen(onBack: () -> Unit) {
                                 val (sy, sm, sd) = BnCalendar.fromGregorian(firstGregorian)
                                 val (ey, em, ed) = BnCalendar.fromGregorian(lastGregorian)
                                 if (sy == ey) {
-                                    "${BnDigits.of(sd)} শে ${BnCalendar.monthNamesBn[sm - 1]} – ${BnDigits.of(ed)} শে ${BnCalendar.monthNamesBn[em - 1]} ${BnDigits.of(ey)} বঙ্গাব্দ"
+                                    "${BnDigits.of(sd)} ${BnCalendar.monthNamesBn[sm - 1]} – ${BnDigits.of(ed)} ${BnCalendar.monthNamesBn[em - 1]} ${BnDigits.of(ey)} বঙ্গাব্দ"
                                 } else {
-                                    "${BnDigits.of(sd)} শে ${BnCalendar.monthNamesBn[sm - 1]} ${BnDigits.of(sy)} – ${BnDigits.of(ed)} শে ${BnCalendar.monthNamesBn[em - 1]} ${BnDigits.of(ey)} বঙ্গাব্দ"
+                                    "${BnDigits.of(sd)} ${BnCalendar.monthNamesBn[sm - 1]} ${BnDigits.of(sy)} – ${BnDigits.of(ed)} ${BnCalendar.monthNamesBn[em - 1]} ${BnDigits.of(ey)} বঙ্গাব্দ"
                                 }
                             },
                             style = HidayahType.Caption.copy(fontSize = 10.sp), color = Gold.copy(alpha = 0.8f)

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hidayah.android.data.hijri.HijriDates
+import com.hidayah.android.data.hijri.IslamicSpecialDays
 import com.hidayah.android.data.bengali.BnCalendar
 import com.hidayah.android.data.Cities
 import androidx.compose.ui.platform.LocalContext
@@ -190,16 +191,76 @@ fun HomeScreen(
                         border = BorderStroke(1.dp, Color(0xFFFFFFFF).copy(alpha = 0.10f)),
                         modifier = Modifier.clickable(onClick = onOpenCalendar)
                     ) {
+                        val cardToday = LocalDate.now()
+                        val ramadanStatus = remember { IslamicSpecialDays.ramadanStatus(cardToday) }
+                        val (specialDay, specialDaysLeft) = remember { IslamicSpecialDays.nearestSpecialDay(cardToday) }
+                        val ramadanLine = if (ramadanStatus.inRamadan) {
+                            "রমজান চলছে — ঈদ আসতে ${BnDigits.of(ramadanStatus.days.toInt())} দিন"
+                        } else {
+                            "রমজান শুরুতে আর ${BnDigits.of(ramadanStatus.days.toInt())} দিন"
+                        }
+                        val specialLine = if (specialDaysLeft == 0L) {
+                            "নিকটতম: ${specialDay.label} — আজ!"
+                        } else {
+                            "নিকটতম: ${specialDay.label} — আর ${BnDigits.of(specialDaysLeft.toInt())} দিন"
+                        }
+                        fun shareCard() {
+                            try {
+                                val file = com.hidayah.android.ui.components.CalendarShareImage.create(localContext, cardToday)
+                                val uri = androidx.core.content.FileProvider.getUriForFile(localContext, "com.hidayah.android.fileprovider", file)
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "image/png"
+                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                    // শুধু ছবি — কোনো লেখা যাবে না
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                localContext.startActivity(Intent.createChooser(intent, "পঞ্জিকার কার্ড শেয়ার করুন"))
+                            } catch (e: Exception) {
+                                android.widget.Toast.makeText(localContext, "শেয়ার করা যায়নি", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
                         Row(
                             Modifier.fillMaxWidth().padding(horizontal = dp(14f), vertical = dp(9f)),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
-                                Text(HijriDates.gregLabelBn(LocalDate.now()), style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
+                                Text(HijriDates.gregLabelBn(cardToday), style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
                                 Text(viewModel.hijriTodayLabel(), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold, modifier = Modifier.padding(top = 2.dp))
-                                Text(BnCalendar.labelBn(LocalDate.now()), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold.copy(alpha = 0.85f), modifier = Modifier.padding(top = 1.dp))
+                                Text(BnCalendar.labelBn(cardToday), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold.copy(alpha = 0.85f), modifier = Modifier.padding(top = 1.dp))
+                                Row(
+                                    Modifier.padding(top = dp(7f)),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CrescentGlyph(modifier = Modifier.size(dp(12f)))
+                                    Spacer(Modifier.width(dp(5f)))
+                                    Text(ramadanLine, style = HidayahType.Caption.copy(fontSize = sp(11.5f), fontWeight = FontWeight.SemiBold), color = Gold)
+                                }
+                                Row(
+                                    Modifier.padding(top = dp(3f)),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    StarGlyph(modifier = Modifier.size(dp(10.5f)))
+                                    Spacer(Modifier.width(dp(5f)))
+                                    Text(specialLine, style = HidayahType.Caption.copy(fontSize = sp(11.5f)), color = Cream.copy(alpha = 0.92f))
+                                }
                             }
-                            GoldSparkle(Modifier.size(dp(21f)))
+                            Spacer(Modifier.width(dp(8f)))
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                GoldSparkle(Modifier.size(dp(19f)))
+                                Spacer(Modifier.height(dp(5f)))
+                                // শেয়ার — শুধু ছবি
+                                Icon(
+                                    Icons.Filled.Share,
+                                    contentDescription = "কার্ড শেয়ার করুন",
+                                    tint = EmeraldDark,
+                                    modifier = Modifier
+                                        .size(dp(21f))
+                                        .clip(CircleShape)
+                                        .background(Gold)
+                                        .clickable(onClick = ::shareCard)
+                                        .padding(dp(3.5f))
+                                )
+                            }
                         }
                     }
                 }
@@ -724,6 +785,37 @@ private fun GoldSparkle(modifier: Modifier = Modifier) {
         path.close()
         drawPath(path, color = Gold)
         drawCircle(color = Color(0xFF093A2C), radius = r * 0.18f, center = c)
+    }
+}
+
+@Composable
+private fun CrescentGlyph(modifier: Modifier = Modifier, tint: Color = Gold) {
+    Canvas(modifier) {
+        val r = size.minDimension / 2f
+        val cx = size.width / 2f
+        val cy = size.height / 2f
+        val outer = Path().apply { addOval(androidx.compose.ui.geometry.Rect(cx - r, cy - r, cx + r, cy + r)) }
+        val cut = Path().apply { addOval(androidx.compose.ui.geometry.Rect(cx - r + r * 0.42f, cy - r * 0.82f, cx + r + r * 0.42f, cy + r * 0.82f)) }
+        drawPath(Path().apply { op(outer, cut, PathOperation.Difference) }, tint)
+    }
+}
+
+@Composable
+private fun StarGlyph(modifier: Modifier = Modifier, tint: Color = Gold) {
+    Canvas(modifier) {
+        val c = Offset(size.width / 2f, size.height / 2f)
+        val r = size.minDimension * 0.5f
+        val inner = r * 0.44f
+        val path = Path()
+        for (i in 0 until 16) {
+            val angle = (Math.PI / 8.0) * i - Math.PI / 2.0
+            val rr = if (i % 2 == 0) r else inner
+            val px = c.x + (rr * kotlin.math.cos(angle)).toFloat()
+            val py = c.y + (rr * kotlin.math.sin(angle)).toFloat()
+            if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+        }
+        path.close()
+        drawPath(path, tint)
     }
 }
 

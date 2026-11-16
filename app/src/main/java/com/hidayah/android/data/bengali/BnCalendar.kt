@@ -35,9 +35,9 @@ object BnCalendar {
         else -> if (bnYear % 4 == 0) 31 else 30
     }
 
-    /** "২৬ শে কার্তিক ১৪৩৩ বঙ্গাব্দ" — বঙ্গাব্দ লেবেল (বাংলাদেশে প্রচলিত লিখনভঙ্গি)। */
+    /** "১৬ নভেম্বর ২০২৬"-শৈলী নয় — "১ অগ্রহায়ণ ১৪৩৩ বঙ্গাব্দ" — বঙ্গাব্দ লেবেল। */
     fun labelBn(date: LocalDate): String {
         val (y, m, d) = fromGregorian(date)
-        return "${BnDigits.of(d)} শে ${monthNamesBn[m - 1]} ${BnDigits.of(y)} বঙ্গাব্দ"
+        return "${BnDigits.of(d)} ${monthNamesBn[m - 1]} ${BnDigits.of(y)} বঙ্গাব্দ"
     }
 }
