@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Hidayah" parent="android:Theme.Material.NoActionBar">
+    <!-- AppCompat-ভিত্তিক — AppCompatActivity (ভাষা/per-app locale)-এর জন্য আবশ্যক -->
+    <style name="Theme.Hidayah" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">#062A20</item>
         <item name="android:navigationBarColor">#FBF8ED</item>
         <item name="android:windowBackground">#062A20</item>
