@@ -24,6 +24,10 @@ data class SettingsState(
     val tasbihTodayTotal: Int = 0,
     val favoriteDuaIds: Set<Int> = emptySet(),
     val theme: String = "system", // "system" | "light" | "dark"
+    val useGpsLocation: Boolean = false, // true = জিপিএস-অবস্থান (বাংলাদেশের বাইরেরও) ব্যবহার হবে
+    val gpsLatitude: Double = 0.0,
+    val gpsLongitude: Double = 0.0,
+    val gpsLabel: String = "", // রিভার্স-জিওকোডেড স্থান-নাম; খালি/ব্যর্থ হলে "বর্তমান অবস্থান"
     val userName: String = "",
     val profileImagePath: String = "" // অ্যাপ-প্রাইভেট স্টোরেஜের পরম পাথ; খালি মানে ডিফল্ট আভাতার
 )
@@ -48,6 +52,10 @@ class SettingsStore(context: Context) {
         val TASBIH_TODAY_DATE = stringPreferencesKey("tasbih_today_date")
         val FAVORITE_DUAS = stringPreferencesKey("favorite_duas")
         val THEME = stringPreferencesKey("theme_preference")
+        val GPS_USE = booleanPreferencesKey("gps_location_enabled")
+        val GPS_LAT = doublePreferencesKey("gps_latitude")
+        val GPS_LNG = doublePreferencesKey("gps_longitude")
+        val GPS_LABEL = stringPreferencesKey("gps_label")
         val USER_NAME = stringPreferencesKey("user_name")
         val PROFILE_IMAGE_PATH = stringPreferencesKey("profile_image_path")
     }
@@ -71,6 +79,10 @@ class SettingsStore(context: Context) {
             favoriteDuaIds = p[Keys.FAVORITE_DUAS].orEmpty()
                 .split(',').mapNotNull { it.trim().toIntOrNull() }.toSet(),
             theme = p[Keys.THEME] ?: "system",
+            useGpsLocation = p[Keys.GPS_USE] ?: false,
+            gpsLatitude = p[Keys.GPS_LAT] ?: 0.0,
+            gpsLongitude = p[Keys.GPS_LNG] ?: 0.0,
+            gpsLabel = p[Keys.GPS_LABEL] ?: "",
             userName = p[Keys.USER_NAME] ?: "",
             profileImagePath = p[Keys.PROFILE_IMAGE_PATH] ?: ""
         )
@@ -80,7 +92,18 @@ class SettingsStore(context: Context) {
     suspend fun setNotifSeheriIftar(value: Boolean) = store.edit { it[Keys.NOTIF_SEHERI_IFTAR] = value }
     suspend fun setNotifTahajjud(value: Boolean) = store.edit { it[Keys.NOTIF_TAHAJJUD] = value }
     suspend fun setNotifJumuah(value: Boolean) = store.edit { it[Keys.NOTIF_JUMUAH] = value }
-    suspend fun setCityKey(value: String) = store.edit { it[Keys.CITY_KEY] = value }
+    // ম্যানুয়াল শহর বেছে নিলে জিপিএস মোড বন্ধ হয়ে যায়
+    suspend fun setCityKey(value: String) = store.edit {
+        it[Keys.CITY_KEY] = value
+        it[Keys.GPS_USE] = false
+    }
+    suspend fun setGpsLocation(lat: Double, lng: Double, label: String) = store.edit {
+        it[Keys.GPS_USE] = true
+        it[Keys.GPS_LAT] = lat
+        it[Keys.GPS_LNG] = lng
+        it[Keys.GPS_LABEL] = label.trim().take(80)
+    }
+    suspend fun clearGpsLocation() = store.edit { it[Keys.GPS_USE] = false }
     suspend fun setLastRead(surah: Int, ayahStart: Int, ayahEnd: Int) = store.edit {
         it[Keys.LAST_READ_SURAH] = surah; it[Keys.LAST_READ_AYAH_START] = ayahStart; it[Keys.LAST_READ_AYAH_END] = ayahEnd
     }

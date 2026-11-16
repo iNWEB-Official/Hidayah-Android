@@ -41,8 +41,13 @@ fun QiblaScreen(viewModel: HidayahViewModel) {
     val context = LocalContext.current
     val settings by viewModel.settings.collectAsState()
 
-    val bearing = remember(settings.cityKey) { viewModel.cityBearing(settings.cityKey) }
-    val distanceKm = remember(settings.cityKey) { viewModel.cityDistanceKm(settings.cityKey) }
+    // জিপিএস চালু থাকলে আসল কো-অর্ডিনেট, নয়তো নির্বাচিত শহর
+    val locationKey = remember(settings.cityKey, settings.useGpsLocation, settings.gpsLatitude, settings.gpsLongitude) {
+        if (settings.useGpsLocation) "gps:%.5f,%.5f".format(settings.gpsLatitude, settings.gpsLongitude) else settings.cityKey
+    }
+    val locationLabel = viewModel.locationLabel(settings)
+    val bearing = remember(locationKey) { viewModel.currentBearing(settings) }
+    val distanceKm = remember(locationKey) { viewModel.currentDistanceKm(settings) }
 
     // ---------- Sensor fusion: rotation vector (or accel+mag fallback) ----------
     var azimuthDeg by remember { mutableFloatStateOf(0f) }
@@ -135,7 +140,7 @@ fun QiblaScreen(viewModel: HidayahViewModel) {
             }
             Spacer(Modifier.height(12.dp))
             Text(
-                "সূক্ষ্মতার জন্য ফোনটি সমতলে ধরুন এবং ধীরে ধীরে ঘোরান। অবস্থান: ${com.hidayah.android.data.Cities.byKey(settings.cityKey).nameBn} (সেটিংসে পরিবর্তনযোগ্য)।",
+                "সূক্ষ্মতার জন্য ফোনটি সমতলে ধরুন এবং ধীরে ধীরে ঘোরান। অবস্থান: $locationLabel (হোমপেজের অবস্থান বা সেটিংসে পরিবর্তনযোগ্য)।",
                 style = HidayahType.Caption, color = pal.sub
             )
             Spacer(Modifier.height(24.dp))

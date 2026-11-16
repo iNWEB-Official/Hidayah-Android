@@ -3,6 +3,8 @@ package com.hidayah.android.ui.components
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
@@ -14,35 +16,78 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import com.hidayah.android.data.Cities
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.Locale
+
+/** জিপিএস ফিক্স — কো-অর্ডিনেট + রিভার্স-জিওকোডেড লেবেল (ব্যর্থ হলে "বর্তমান অবস্থান")। */
+data class GpsFix(val lat: Double, val lng: Double, val label: String)
 
 /**
- * "জিপিএস থেকে অবস্থান সেট করুন" — পারমিশন চেয়ে, LocationManager (Play Services ছাড়া, অফলাইনে কাজ করে)
- * থেকে nearest জনপ্রিয় শহর বেছে onCityKey(key|null) কল করে।
+ * এক-চাপে জিপিএস অবস্থান নেওয়া — পারমিশন চেয়ে (প্রয়োজনে), LocationManager-এর
+ * last-known বা এককালীন আপডেট (৮ সেকেন্ড টাইমআউট) → রিভার্স জিওকোড → onResult(fix|null)।
+ * Play Services লাগে না; বাংলাদেশের বাইরের ব্যবহারকারীদের জন্যও সঠিক।
  */
 @Composable
-fun rememberNearestCityRequester(onCityKey: (String?) -> Unit): () -> Unit {
+fun rememberGpsLocationRequester(onResult: (GpsFix?) -> Unit): () -> Unit {
     val context = LocalContext.current
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    fun handleCoords(lat: Double, lng: Double) {
+        coroutineScope.launch {
+            val label = reverseGeocode(context, lat, lng).ifBlank { "বর্তমান অবস্থান" }
+            onResult(GpsFix(lat, lng, label))
+        }
+    }
+
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
-        if (granted) readGpsThenApply(context, onCityKey) else onCityKey(null)
+        if (granted) {
+            acquireCoords(context, ::handleCoords) { onResult(null) }
+        } else {
+            onResult(null)
+        }
     }
-    return remember(context, onCityKey, launcher) {
+
+    return remember(context, onResult, launcher) {
         {
             val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
             val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
             when {
-                fine || coarse -> readGpsThenApply(context, onCityKey)
+                fine || coarse -> acquireCoords(context, ::handleCoords) { onResult(null) }
                 else -> launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         }
     }
 }
 
-private fun readGpsThenApply(context: Context, onCityKey: (String?) -> Unit) {
+/** পারমিশন যাচাই করে নিকটবর্তী GPS-তৎক্ষণ অনুরোধ (নীরব রিফ্রেশ; অনুমতি না থাকলে কিছুই করে না)। */
+@Composable
+fun rememberSilentGpsRefresh(onFix: (GpsFix) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+    return remember(context, onFix) {
+        {
+            val granted = listOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                .any { ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED }
+            if (granted) {
+                acquireCoords(context,
+                    { lat, lng ->
+                        coroutineScope.launch {
+                            val label = reverseGeocode(context, lat, lng).ifBlank { "বর্তমান অবস্থান" }
+                            onFix(GpsFix(lat, lng, label))
+                        }
+                    },
+                    {})
+            }
+        }
+    }
+}
+
+private fun acquireCoords(context: Context, onCoords: (Double, Double) -> Unit, onFail: () -> Unit) {
     val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
-    if (lm == null) { onCityKey(null); return }
+    if (lm == null) { onFail(); return }
 
     fun bestLastKnown(): Location? =
         listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
@@ -51,15 +96,11 @@ private fun readGpsThenApply(context: Context, onCityKey: (String?) -> Unit) {
             }
             .maxByOrNull { it.time }
 
-    bestLastKnown()?.let {
-        onCityKey(Cities.nearestKey(it.latitude, it.longitude))
-        return
-    }
+    bestLastKnown()?.let { onCoords(it.latitude, it.longitude); return }
 
-    // কোনো cached অবস্থান নেই — এককালীন আপডেট, ৮ সেকেন্ডে টাইমআউট
     val provider = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
         .firstOrNull { runCatching { lm.isProviderEnabled(it) }.getOrDefault(false) }
-    if (provider == null) { onCityKey(null); return }
+    if (provider == null) { onFail(); return }
 
     var done = false
     val timeoutMs = 8_000L
@@ -68,7 +109,7 @@ private fun readGpsThenApply(context: Context, onCityKey: (String?) -> Unit) {
             if (done) return
             done = true
             runCatching { lm.removeUpdates(this) }
-            onCityKey(Cities.nearestKey(loc.latitude, loc.longitude))
+            onCoords(loc.latitude, loc.longitude)
         }
     }
     val handler = android.os.Handler(Looper.getMainLooper())
@@ -76,7 +117,7 @@ private fun readGpsThenApply(context: Context, onCityKey: (String?) -> Unit) {
         if (!done) {
             done = true
             runCatching { lm.removeUpdates(listener) }
-            onCityKey(null)
+            onFail()
         }
     }, timeoutMs)
 
@@ -87,12 +128,19 @@ private fun readGpsThenApply(context: Context, onCityKey: (String?) -> Unit) {
             @Suppress("DEPRECATION")
             lm.requestLocationUpdates(provider, 0L, 0f, listener)
         }
-    }.onFailure { onCityKey(null) }
+    }.onFailure { onFail() }
 }
 
-/** ব্যবহারকারীকে জানিয়ে কী হবে: সফল হলে শহরের নাম, ব্যর্থ হলে বার্তা — বাস্তবায়ন স্ক্রিন-সাইডে টোস্টে। */
-fun gpsResultMessage(context: Context, cityKey: String?): String = if (cityKey != null) {
-    "অবস্থান সেট হয়েছে: ${com.hidayah.android.data.Cities.byKey(cityKey).nameBn}"
-} else {
-    "জিপিএস থেকে অবস্থান পাওয়া যায়নি — পারমিশন/লোকেশন সার্ভিস চালু আছে কিনা দেখুন"
+/** রিভার্স জিওকোড — "স্থান, দেশ" (বাংলা লোকালে); ব্যর্থতা/অপেক্ষারত হলে ফাঁকা স্ট্রিং। */
+private suspend fun reverseGeocode(context: Context, lat: Double, lng: Double): String = withContext(Dispatchers.IO) {
+    runCatching {
+        @Suppress("DEPRECATION")
+        val geocoder = Geocoder(context, Locale.forLanguageTag("bn"))
+        @Suppress("DEPRECATION")
+        val a: Address? = geocoder.getFromLocation(lat, lng, 1)?.firstOrNull()
+        if (a == null) return@runCatching ""
+        val place = a.locality ?: a.subAdminArea ?: a.adminArea
+        val country = a.countryName
+        listOfNotNull(place, country).joinToString(", ")
+    }.getOrDefault("")
 }

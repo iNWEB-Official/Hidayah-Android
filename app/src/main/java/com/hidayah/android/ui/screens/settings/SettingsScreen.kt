@@ -40,10 +40,15 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
     var showMadhabSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
 
-    val requestGpsCity = rememberNearestCityRequester { key ->
-        if (key != null) viewModel.setCity(key)
-        Toast.makeText(context, gpsResultMessage(context, key), Toast.LENGTH_SHORT).show()
+    val requestGpsCity = rememberGpsLocationRequester { fix ->
+        if (fix != null) {
+            viewModel.setGpsLocation(fix.lat, fix.lng, fix.label)
+            Toast.makeText(context, "অবস্থান সেট হয়েছে: ${fix.label}", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(context, "জিপিএস থেকে অবস্থান পাওয়া যায়নি — পারমিশন/লোকেশন চালু আছে কিনা দেখুন", Toast.LENGTH_SHORT).show()
+        }
     }
+    val locationSubtitle = if (settings.useGpsLocation) settings.gpsLabel.ifBlank { "বর্তমান অবস্থান (জিপিএস)" } else Cities.byKey(settings.cityKey).nameBn
 
     Column(Modifier.fillMaxSize().background(pal.background)) {
         ScreenTitle(
@@ -71,7 +76,7 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
                         Text(displayName, style = HidayahType.TitleSans, color = Cream)
-                        Text("${Cities.byKey(settings.cityKey).nameBn}, বাংলাদেশ", style = HidayahType.Caption, color = OnEmMuted)
+                        Text(locationSubtitle, style = HidayahType.Caption, color = OnEmMuted)
                         Text("ফ্রি প্ল্যান • হিদায়াহ ${BuildConfig.VERSION_NAME}", style = HidayahType.Caption, color = GoldSoft.copy(alpha = 0.8f))
                     }
                     Icon(Icons.Filled.ChevronRight, contentDescription = "প্রোফাইল খুলুন", tint = Gold)
@@ -111,8 +116,8 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
                 HorizontalDivider(color = pal.line, thickness = 0.6.dp)
                 SettingsRow(
                     icon = Icons.Filled.Place,
-                    title = "শহর",
-                    subtitle = Cities.byKey(settings.cityKey).nameBn,
+                    title = "অবস্থান",
+                    subtitle = locationSubtitle,
                     onClick = { showCitySheet = true },
                     trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = pal.sub) }
                 )
@@ -251,13 +256,24 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
                     Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.MyLocation, contentDescription = null, tint = pal.brand)
                         Spacer(Modifier.width(10.dp))
-                        Text("জিপিএস থেকে সেট করুন (নিকটতম শহর)", style = HidayahType.BodyMedium, color = pal.ink, modifier = Modifier.weight(1f))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                if (settings.useGpsLocation) "জিপিএস অবস্থান (সক্রিয়)" else "জিপিএস থেকে সেট করুন",
+                                style = HidayahType.BodyMedium, color = pal.ink
+                            )
+                            Text(
+                                if (settings.useGpsLocation) settings.gpsLabel.ifBlank { "বর্তমান অবস্থান" }
+                                else "বাংলাদেশের বাইরের ব্যবহারকারীদের জন্যও",
+                                style = HidayahType.Caption, color = pal.sub
+                            )
+                        }
+                        if (settings.useGpsLocation) Icon(Icons.Filled.Check, contentDescription = "সক্রিয়", tint = pal.brand)
                     }
                 }
                 Spacer(Modifier.height(10.dp))
                 LazyColumn(Modifier.heightIn(max = 380.dp)) {
                     items(Cities.ALL, key = { it.key }) { city ->
-                        val selected = city.key == settings.cityKey
+                        val selected = !settings.useGpsLocation && city.key == settings.cityKey
                         Surface(
                             shape = HidayahShapes.Small,
                             color = if (selected) Emerald else pal.background,

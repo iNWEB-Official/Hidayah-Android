@@ -44,7 +44,9 @@ fun ProfileScreen(
     onOpenSettings: () -> Unit
 ) {
     val settings by viewModel.settings.collectAsState()
-    val cityName = remember(settings.cityKey) { Cities.byKey(settings.cityKey).nameBn }
+    val cityName = remember(settings.cityKey, settings.useGpsLocation, settings.gpsLabel, settings.gpsLatitude) {
+        if (settings.useGpsLocation) settings.gpsLabel.ifBlank { "বর্তমান অবস্থান (জিপিএস)" } else Cities.byKey(settings.cityKey).nameBn
+    }
     val isGuest = settings.userName.isBlank()
     val displayName = settings.userName.trim().ifBlank { "অতিথি" }
     val madhab = if (settings.hanafiAsr) "হানাফি মাযহাব" else "শাফেয়ী মাযহাব"
@@ -176,7 +178,7 @@ fun ProfileScreen(
         Column(Modifier.padding(horizontal = 20.dp)) {
             SectionLabel("তথ্য")
             Spacer(Modifier.height(8.dp))
-            DetailRow(Icons.Filled.Place, "শহর", cityName) { onOpenSettings() }
+            DetailRow(Icons.Filled.Place, "অবস্থান", cityName) { onOpenSettings() }
             DetailRow(Icons.Filled.Mosque, "মাযহাব", madhab) { onOpenSettings() }
             DetailRow(Icons.Filled.DarkMode, "থিম", themeLabel) { onOpenSettings() }
             DetailRow(Icons.Filled.Language, "ভাষা", "বাংলা") {}

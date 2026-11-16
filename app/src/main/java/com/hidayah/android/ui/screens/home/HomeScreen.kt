@@ -69,10 +69,19 @@ fun HomeScreen(
     var locationMenuExpanded by remember { mutableStateOf(false) }
     val displayName = homeSettings.userName.trim().ifBlank { "অতিথি" }
 
-    // জিপিএস → nearest শহর (পারমিশন চেয়ে নেয়)
-    val requestCityFromGps = rememberNearestCityRequester { key ->
-        if (key != null) viewModel.setCity(key)
-        android.widget.Toast.makeText(localContext, gpsResultMessage(localContext, key), android.widget.Toast.LENGTH_SHORT).show()
+    // জিপিএস ফিক্স (বাংলাদেশের বাইরেরও) — পারমিশন চেয়ে রিভার্স-জিওকোডসহ
+    val requestGpsFix = rememberGpsLocationRequester { fix ->
+        if (fix != null) {
+            viewModel.setGpsLocation(fix.lat, fix.lng, fix.label)
+            android.widget.Toast.makeText(localContext, "অবস্থান সেট হয়েছে: ${fix.label}", android.widget.Toast.LENGTH_SHORT).show()
+        } else {
+            android.widget.Toast.makeText(localContext, "জিপিএস থেকে অবস্থান পাওয়া যায়নি — পারমিশন/লোকেশন চালু আছে কিনা দেখুন", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+    // জিপিএস মোড চালু থাকলে অ্যাপ খোলার সময় নীরবে কো-অর্ডিনেট রিফ্রেশ
+    val silentGpsRefresh = rememberSilentGpsRefresh { fix -> viewModel.setGpsLocation(fix.lat, fix.lng, fix.label) }
+    LaunchedEffect(homeSettings.useGpsLocation) {
+        if (homeSettings.useGpsLocation) silentGpsRefresh()
     }
     val comingSoonMsg = if (useBangla) "শীঘ্রই আসছে" else "Up Coming"
     val showComingSoon: () -> Unit = {
@@ -140,7 +149,7 @@ fun HomeScreen(
                         ) {
                             Icon(Icons.Filled.Place, contentDescription = null, tint = Gold, modifier = Modifier.size(dp(16f)))
                             Spacer(Modifier.width(dp(5f)))
-                            Text("${homeUi.cityName}, বাংলাদেশ", style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
+                            Text(if (homeSettings.useGpsLocation) homeUi.cityName else "${homeUi.cityName}, বাংলাদেশ", style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
                             Spacer(Modifier.width(dp(3f)))
                             Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = Gold, modifier = Modifier.size(dp(17f)))
                         }
@@ -148,21 +157,30 @@ fun HomeScreen(
                             expanded = locationMenuExpanded,
                             onDismissRequest = { locationMenuExpanded = false }
                         ) {
+                            // জিপিএস — বাংলাদেশের বাইরের ব্যবহারকারীদের জন্যও সঠিক
+                            DropdownMenuItem(
+                                text = { Text(if (homeSettings.useGpsLocation) "জিপিএস অবস্থান সক্রিয়" else "জিপিএস থেকে সেট করুন") },
+                                leadingIcon = { Icon(Icons.Filled.MyLocation, contentDescription = null, tint = Gold) },
+                                trailingIcon = if (homeSettings.useGpsLocation) {
+                                    { Icon(Icons.Filled.Check, contentDescription = "সক্রিয়", tint = Gold) }
+                                } else null,
+                                onClick = { locationMenuExpanded = false; requestGpsFix() }
+                            )
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text("বাংলাদেশের শহরসমূহ", style = HidayahType.Caption, color = pal.sub) },
+                                enabled = false,
+                                onClick = {}
+                            )
                             Cities.ALL.forEach { city ->
                                 DropdownMenuItem(
                                     text = { Text(city.nameBn) },
                                     leadingIcon = {
-                                        if (homeUi.cityName == city.nameBn) Icon(Icons.Filled.Check, contentDescription = null)
+                                        if (!homeSettings.useGpsLocation && homeUi.cityName == city.nameBn) Icon(Icons.Filled.Check, contentDescription = null)
                                     },
                                     onClick = { viewModel.setCity(city.key); locationMenuExpanded = false }
                                 )
                             }
-                            HorizontalDivider()
-                            DropdownMenuItem(
-                                text = { Text("জিপিএস থেকে সেট করুন") },
-                                leadingIcon = { Icon(Icons.Filled.MyLocation, contentDescription = null) },
-                                onClick = { locationMenuExpanded = false; requestCityFromGps() }
-                            )
                         }
                     }
                     Spacer(Modifier.height(dp(11f)))
