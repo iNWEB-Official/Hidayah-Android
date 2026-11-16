@@ -19,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hidayah.android.data.hijri.HijriDates
+import com.hidayah.android.data.bengali.BnCalendar
 import com.hidayah.android.ui.components.*
 import com.hidayah.android.ui.theme.*
 import com.hidayah.android.util.BnDigits
@@ -55,7 +56,7 @@ fun CalendarScreen(onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().background(pal.background)) {
         EmeraldHeroHeader(
             title = "হিজরী ক্যালেন্ডার",
-            subtitle = "ইসলামিক বর্ষপঞ্জি • উম্মুল-ক্বুরা",
+            subtitle = "তিন পঞ্জিকা — হিজরি • গ্রেগরিয়ান • বঙ্গাব্দ",
             onBack = onBack
         ) {
             // "আজ" pill — jump back to the current hijri month
@@ -103,6 +104,18 @@ fun CalendarScreen(onBack: () -> Unit) {
                         Text(
                             "${BnDigits.of(firstGregorian.dayOfMonth)} ${gregMonthBn(firstGregorian.monthValue)} – ${BnDigits.of(lastGregorian.dayOfMonth)} ${gregMonthBn(lastGregorian.monthValue)} ${BnDigits.of(lastGregorian.year)}",
                             style = HidayahType.Caption, color = OnEmMuted
+                        )
+                        Text(
+                            run {
+                                val (sy, sm, sd) = BnCalendar.fromGregorian(firstGregorian)
+                                val (ey, em, ed) = BnCalendar.fromGregorian(lastGregorian)
+                                if (sy == ey) {
+                                    "${BnDigits.of(sd)} শে ${BnCalendar.monthNamesBn[sm - 1]} – ${BnDigits.of(ed)} শে ${BnCalendar.monthNamesBn[em - 1]} ${BnDigits.of(ey)} বঙ্গাব্দ"
+                                } else {
+                                    "${BnDigits.of(sd)} শে ${BnCalendar.monthNamesBn[sm - 1]} ${BnDigits.of(sy)} – ${BnDigits.of(ed)} শে ${BnCalendar.monthNamesBn[em - 1]} ${BnDigits.of(ey)} বঙ্গাব্দ"
+                                }
+                            },
+                            style = HidayahType.Caption.copy(fontSize = 10.sp), color = Gold.copy(alpha = 0.8f)
                         )
                     }
                     IconButton(onClick = {
@@ -174,11 +187,13 @@ fun CalendarScreen(onBack: () -> Unit) {
                     }
                     Spacer(Modifier.width(14.dp))
                     Column {
+                        // তিন পঞ্জিকা — হিজরি (উম্মুল-ক্বুরা), ইংরেজি (গ্রেগরিয়ান), বাংলা (বঙ্গাব্দ)
                         Text(
                             "${BnDigits.of(selectedDay)} ${HijriDates.monthNamesBn[viewMonth - 1]} ${BnDigits.of(viewYear)} হিজরি",
-                            style = HidayahType.BodyMedium, color = pal.ink
+                            style = HidayahType.BodyMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold), color = pal.ink
                         )
                         Text(HijriDates.gregLabelBn(selectedGregorian), style = HidayahType.Caption, color = pal.sub)
+                        Text(BnCalendar.labelBn(selectedGregorian), style = HidayahType.Caption, color = pal.sub)
                     }
                 }
             }

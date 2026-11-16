@@ -23,7 +23,9 @@ data class SettingsState(
     val tasbihCount: Int = 0,
     val tasbihTodayTotal: Int = 0,
     val favoriteDuaIds: Set<Int> = emptySet(),
-    val theme: String = "system" // "system" | "light" | "dark"
+    val theme: String = "system", // "system" | "light" | "dark"
+    val userName: String = "",
+    val profileImagePath: String = "" // অ্যাপ-প্রাইভেট স্টোরেஜের পরম পাথ; খালি মানে ডিফল্ট আভাতার
 )
 
 class SettingsStore(context: Context) {
@@ -46,6 +48,8 @@ class SettingsStore(context: Context) {
         val TASBIH_TODAY_DATE = stringPreferencesKey("tasbih_today_date")
         val FAVORITE_DUAS = stringPreferencesKey("favorite_duas")
         val THEME = stringPreferencesKey("theme_preference")
+        val USER_NAME = stringPreferencesKey("user_name")
+        val PROFILE_IMAGE_PATH = stringPreferencesKey("profile_image_path")
     }
 
     val settings: Flow<SettingsState> = store.data.map { p ->
@@ -66,7 +70,9 @@ class SettingsStore(context: Context) {
             tasbihTodayTotal = if (savedDate == today) (p[Keys.TASBIH_TODAY_TOTAL] ?: 0) else 0,
             favoriteDuaIds = p[Keys.FAVORITE_DUAS].orEmpty()
                 .split(',').mapNotNull { it.trim().toIntOrNull() }.toSet(),
-            theme = p[Keys.THEME] ?: "system"
+            theme = p[Keys.THEME] ?: "system",
+            userName = p[Keys.USER_NAME] ?: "",
+            profileImagePath = p[Keys.PROFILE_IMAGE_PATH] ?: ""
         )
     }
 
@@ -93,6 +99,8 @@ class SettingsStore(context: Context) {
     }
     suspend fun resetTasbihCount() = store.edit { it[Keys.TASBIH_COUNT] = 0 }
     suspend fun setTheme(value: String) = store.edit { it[Keys.THEME] = value }
+    suspend fun setUserName(value: String) = store.edit { it[Keys.USER_NAME] = value.trim().take(60) }
+    suspend fun setProfileImagePath(value: String) = store.edit { it[Keys.PROFILE_IMAGE_PATH] = value }
 
     suspend fun toggleFavoriteDua(id: Int) = store.edit { p ->
         val current = p[Keys.FAVORITE_DUAS].orEmpty().split(',').mapNotNull { it.trim().toIntOrNull() }.toMutableSet()

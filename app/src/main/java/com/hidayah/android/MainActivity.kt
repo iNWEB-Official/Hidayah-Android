@@ -21,6 +21,8 @@ import com.hidayah.android.ui.screens.calendar.CalendarScreen
 import com.hidayah.android.ui.screens.cover.CoverScreen
 import com.hidayah.android.ui.screens.dua.DuasScreen
 import com.hidayah.android.ui.screens.home.HomeScreen
+import com.hidayah.android.ui.screens.profile.ProfileScreen
+import com.hidayah.android.ui.screens.profile.ProfileEditScreen
 import com.hidayah.android.ui.screens.qibla.QiblaScreen
 import com.hidayah.android.ui.screens.quran.QuranScreen
 import com.hidayah.android.ui.screens.quran.ReaderScreen
@@ -98,7 +100,8 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
                     onOpenCalendar = { navController.navigate(Routes.CALENDAR) },
                     onOpenQuran = { navController.navigate(Routes.QURAN) },
                     onOpenQibla = { navController.navigate(Routes.QIBLA) },
-                    onOpenTasbih = { navController.navigate(Routes.TASBIH) }
+                    onOpenTasbih = { navController.navigate(Routes.TASBIH) },
+                    onOpenProfile = { navController.navigate(Routes.PROFILE) }
                 )
             }
             composable(Routes.QURAN) {
@@ -119,7 +122,22 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
             composable(Routes.CALENDAR) {
                 CalendarScreen(onBack = { navController.popBackStack() })
             }
-            composable(Routes.SETTINGS) { SettingsScreen(viewModel = viewModel, onOpenDesignSystem = { navController.navigate(Routes.DESIGN_SYSTEM) }) }
+            composable(Routes.PROFILE) {
+                ProfileScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onEditProfile = { navController.navigate(Routes.PROFILE_EDIT) },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                )
+            }
+            composable(Routes.PROFILE_EDIT) {
+                ProfileEditScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                )
+            }
+            composable(Routes.SETTINGS) { SettingsScreen(viewModel = viewModel, onOpenDesignSystem = { navController.navigate(Routes.DESIGN_SYSTEM) }, onOpenProfile = { navController.navigate(Routes.PROFILE) }) }
             composable(Routes.DESIGN_SYSTEM) { DesignSystemScreen(onBack = { navController.popBackStack() }) }
         }
     }

@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hidayah.android.data.hijri.HijriDates
+import com.hidayah.android.data.bengali.BnCalendar
+import com.hidayah.android.data.Cities
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalClipboardManager
 import android.content.Intent
@@ -57,9 +59,25 @@ fun HomeScreen(
     onOpenQuran: () -> Unit,
     onOpenQibla: () -> Unit = {},
     onOpenTasbih: () -> Unit = {},
-    onOpenCalendar: () -> Unit = {}
+    onOpenCalendar: () -> Unit = {},
+    onOpenProfile: () -> Unit = {}
 ) {
     val homeUi by viewModel.homeUi.collectAsState()
+    val homeSettings by viewModel.settings.collectAsState()
+    val localContext = LocalContext.current
+    val useBangla = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language.startsWith("bn")
+    var locationMenuExpanded by remember { mutableStateOf(false) }
+    val displayName = homeSettings.userName.trim().ifBlank { "অতিথি" }
+
+    // জিপিএস → nearest শহর (পারমিশন চেয়ে নেয়)
+    val requestCityFromGps = rememberNearestCityRequester { key ->
+        if (key != null) viewModel.setCity(key)
+        android.widget.Toast.makeText(localContext, gpsResultMessage(localContext, key), android.widget.Toast.LENGTH_SHORT).show()
+    }
+    val comingSoonMsg = if (useBangla) "শীঘ্রই আসছে" else "Up Coming"
+    val showComingSoon: () -> Unit = {
+        android.widget.Toast.makeText(localContext, comingSoonMsg, android.widget.Toast.LENGTH_SHORT).show()
+    }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(pal.background)) {
         // uniform scale relative to a ~780dp tall reference viewport
@@ -82,19 +100,21 @@ fun HomeScreen(
             ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            Modifier
-                                .size(dp(46f))
-                                .clip(CircleShape)
-                                .background(Brush.linearGradient(listOf(Gold, GoldDeep))),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f).clickable(onClick = onOpenProfile)
                         ) {
-                            Text("রা", style = HidayahType.H2.copy(fontSize = sp(19f)), color = EmeraldDark)
-                        }
-                        Spacer(Modifier.width(dp(11f)))
-                        Column(Modifier.weight(1f)) {
-                            Text("আসসালামু আলাইকুম,", style = HidayahType.Caption.copy(fontSize = sp(11.5f)), color = OnEmMuted)
-                            Text("রাহিম উদ্দিন", style = HidayahType.H2.copy(fontSize = sp(20f)), color = Cream)
+                            ProfileAvatar(
+                                imagePath = homeSettings.profileImagePath,
+                                displayName = homeSettings.userName,
+                                size = dp(46f)
+                            )
+                            Spacer(Modifier.width(dp(11f)))
+                            Column {
+                                Text("আসসালামু আলাইকুম,", style = HidayahType.Caption.copy(fontSize = sp(11.5f)), color = OnEmMuted)
+                                // লগইন/নাম সেট করা না থাকলে "অতিথি"
+                                Text(displayName, style = HidayahType.H2.copy(fontSize = sp(20f)), color = Cream)
+                            }
                         }
                         Box {
                             Icon(Icons.Filled.Notifications, contentDescription = "বিজ্ঞপ্তি", tint = Cream, modifier = Modifier.size(dp(26f)))
@@ -109,18 +129,41 @@ fun HomeScreen(
                         }
                     }
                     Spacer(Modifier.height(dp(11f)))
-                    Row(
-                        Modifier
-                            .clip(HidayahShapes.Pill)
-                            .clickable { /* location picker lives in Settings */ }
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Filled.Place, contentDescription = null, tint = Gold, modifier = Modifier.size(dp(16f)))
-                        Spacer(Modifier.width(dp(5f)))
-                        Text("${homeUi.cityName}, বাংলাদেশ", style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
-                        Spacer(Modifier.width(dp(3f)))
-                        Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = Gold, modifier = Modifier.size(dp(17f)))
+                    // অবস্থান পিল — ট্যাপ করে ড্রপডাউন থেকে ম্যানুয়ালি শহর বা জিপিএস দিয়ে সেট করুন
+                    Box {
+                        Row(
+                            Modifier
+                                .clip(HidayahShapes.Pill)
+                                .clickable { locationMenuExpanded = true }
+                                .padding(vertical = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Filled.Place, contentDescription = null, tint = Gold, modifier = Modifier.size(dp(16f)))
+                            Spacer(Modifier.width(dp(5f)))
+                            Text("${homeUi.cityName}, বাংলাদেশ", style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
+                            Spacer(Modifier.width(dp(3f)))
+                            Icon(Icons.Filled.KeyboardArrowDown, contentDescription = null, tint = Gold, modifier = Modifier.size(dp(17f)))
+                        }
+                        DropdownMenu(
+                            expanded = locationMenuExpanded,
+                            onDismissRequest = { locationMenuExpanded = false }
+                        ) {
+                            Cities.ALL.forEach { city ->
+                                DropdownMenuItem(
+                                    text = { Text(city.nameBn) },
+                                    leadingIcon = {
+                                        if (homeUi.cityName == city.nameBn) Icon(Icons.Filled.Check, contentDescription = null)
+                                    },
+                                    onClick = { viewModel.setCity(city.key); locationMenuExpanded = false }
+                                )
+                            }
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text("জিপিএস থেকে সেট করুন") },
+                                leadingIcon = { Icon(Icons.Filled.MyLocation, contentDescription = null) },
+                                onClick = { locationMenuExpanded = false; requestCityFromGps() }
+                            )
+                        }
                     }
                     Spacer(Modifier.height(dp(11f)))
                     Surface(
@@ -136,6 +179,7 @@ fun HomeScreen(
                             Column(Modifier.weight(1f)) {
                                 Text(HijriDates.gregLabelBn(LocalDate.now()), style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
                                 Text(viewModel.hijriTodayLabel(), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold, modifier = Modifier.padding(top = 2.dp))
+                                Text(BnCalendar.labelBn(LocalDate.now()), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold.copy(alpha = 0.85f), modifier = Modifier.padding(top = 1.dp))
                             }
                             GoldSparkle(Modifier.size(dp(21f)))
                         }
@@ -161,7 +205,7 @@ fun HomeScreen(
                         countdownMinutes = homeUi.countdownMinutes,
                         progress = prayerWindowFraction(homeUi.prayerTimes, homeUi.nextIndex, homeUi.nowMinutes),
                         s = s,
-                        modifier = Modifier.weight(1.12f).offset(y = (-30).dp)
+                        modifier = Modifier.weight(1.10f).offset(y = (-30).dp)
                     )
                 } else {
                     Spacer(Modifier.weight(1.12f))
@@ -177,13 +221,13 @@ fun HomeScreen(
                 }
 
                 // ---------- Six times panel ----------
-                PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.weight(1.02f))
+                PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.weight(0.97f))
 
                 // ---------- Quick actions — background-image card ----------
                 Card(
                     shape = HidayahShapes.Medium,
                     colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
-                    modifier = Modifier.fillMaxWidth().weight(0.94f)
+                    modifier = Modifier.fillMaxWidth().weight(1.30f)
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         Image(
@@ -198,29 +242,50 @@ fun HomeScreen(
                                 .clip(HidayahShapes.Medium)
                                 .background(Brush.verticalGradient(listOf(Color(0x26000000), Color(0x4D000000))))
                         )
-                        Row(
-                            Modifier.fillMaxSize().padding(horizontal = dp(10f), vertical = dp(7f)),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            Modifier.fillMaxSize().padding(horizontal = dp(4f), vertical = dp(5f)),
+                            verticalArrangement = Arrangement.SpaceEvenly
                         ) {
-                        RoundQuickAction("কুরআন", onClick = onOpenQuran, s = s) { tint ->
-                            Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = tint, modifier = Modifier.size(dp(24f)))
-                        }
-                        RoundQuickAction("কিবলা", onClick = onOpenQibla, s = s) { tint ->
-                            Icon(Icons.Filled.Explore, contentDescription = null, tint = tint, modifier = Modifier.size(dp(24f)))
-                        }
-                        RoundQuickAction("দোয়া", onClick = onOpenDuas, s = s, filledGold = true) { _ ->
-                            Text("دُعَا", style = HidayahType.Arabic.copy(fontSize = sp(18f)), color = EmeraldDark)
-                        }
-                        RoundQuickAction("তসবিহ", onClick = onOpenTasbih, s = s) { tint ->
-                            TasbihBeadsIcon(tint = tint, modifier = Modifier.size(dp(24f)))
-                        }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                                RoundQuickAction("কুরআন", onClick = onOpenQuran, s = s) { tint ->
+                                    Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = tint, modifier = Modifier.size(dp(22f)))
+                                }
+                                RoundQuickAction("কিবলা", onClick = onOpenQibla, s = s) { tint ->
+                                    Icon(Icons.Filled.Explore, contentDescription = null, tint = tint, modifier = Modifier.size(dp(22f)))
+                                }
+                                RoundQuickAction("দোয়া", onClick = onOpenDuas, s = s, filledGold = true) { _ ->
+                                    Text("دُعَا", style = HidayahType.Arabic.copy(fontSize = sp(16f)), color = EmeraldDark)
+                                }
+                                RoundQuickAction("তসবিহ", onClick = onOpenTasbih, s = s) { tint ->
+                                    TasbihBeadsIcon(tint = tint, modifier = Modifier.size(dp(22f)))
+                                }
+                                RoundQuickAction("ক্যালেন্ডার", onClick = onOpenCalendar, s = s) { tint ->
+                                    Icon(Icons.Filled.CalendarMonth, contentDescription = null, tint = tint, modifier = Modifier.size(dp(22f)))
+                                }
+                            }
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                                RoundQuickAction("যাকাত", onClick = showComingSoon, s = s, comingSoon = true) { tint ->
+                                    Icon(Icons.Filled.AccountBalanceWallet, contentDescription = null, tint = tint, modifier = Modifier.size(dp(21f)))
+                                }
+                                RoundQuickAction("তাফসীর", onClick = showComingSoon, s = s, comingSoon = true) { tint ->
+                                    Icon(Icons.Filled.AutoStories, contentDescription = null, tint = tint, modifier = Modifier.size(dp(21f)))
+                                }
+                                RoundQuickAction("প্রশ্নোত্তর", onClick = showComingSoon, s = s, comingSoon = true) { tint ->
+                                    Icon(Icons.Filled.HelpOutline, contentDescription = null, tint = tint, modifier = Modifier.size(dp(21f)))
+                                }
+                                RoundQuickAction("হজ-উমরা", onClick = showComingSoon, s = s, comingSoon = true) { tint ->
+                                    KaabaGlyph(tint = tint, modifier = Modifier.size(dp(21f)))
+                                }
+                                RoundQuickAction("মাসজিদ", onClick = showComingSoon, s = s, comingSoon = true) { tint ->
+                                    MosqueGlyph(tint = tint, modifier = Modifier.size(dp(21f)))
+                                }
+                            }
                         }
                     }
                 }
 
                 // ---------- Ayah of the day — header row (share/copy বাইরে) + pure card ----------
-                AyahOfDayCard(viewModel, s = s, modifier = Modifier.weight(1.30f).padding(bottom = dp(2f)))
+                AyahOfDayCard(viewModel, s = s, modifier = Modifier.weight(1.14f).padding(bottom = dp(2f)))
             }
         }
     }
@@ -241,27 +306,40 @@ private fun NextPrayerCard(
     val sp: (Float) -> androidx.compose.ui.unit.TextUnit = { (it * s).sp }
     Card(
         shape = HidayahShapes.Large,
-        colors = CardDefaults.cardColors(containerColor = pal.card),
+        colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(
-            Modifier.fillMaxSize().padding(horizontal = (17 * s).dp, vertical = (10 * s).dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Box(Modifier.fillMaxSize()) {
+            Image(
+                painterResource(R.drawable.bg_next_prayer),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().clip(HidayahShapes.Large)
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .clip(HidayahShapes.Large)
+                    .background(Brush.horizontalGradient(listOf(Color(0xE008261D), Color(0x7308261D), Color(0x2608261D))))
+            )
+            Row(
+                Modifier.fillMaxSize().padding(horizontal = (17 * s).dp, vertical = (10 * s).dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                Text("পরবর্তী নামাজ", style = HidayahType.Overline.copy(color = GoldDeep, fontSize = sp(10.5f), letterSpacing = 1.5.sp))
+                Text("পরবর্তী নামাজ", style = HidayahType.Overline.copy(color = Gold, fontSize = sp(10.5f), letterSpacing = 1.5.sp))
                 Spacer(Modifier.height((3 * s).dp))
                 Text(
                     name,
                     style = HidayahType.Display.copy(fontFamily = NotoSerifBengali, fontWeight = FontWeight.Bold, fontSize = sp(33f), lineHeight = (42 * s).sp),
-                    color = pal.brandOnSurface
+                    color = Cream
                 )
                 Spacer(Modifier.height((2 * s).dp))
                 val h = countdownMinutes / 60
                 val m = countdownMinutes % 60
                 val tail = if (h > 0) "আর ${BnDigits.of(h)} ঘণ্টা ${BnDigits.of(m)} মিনিট" else "আর ${BnDigits.of(m)} মিনিট"
-                Text("$dayPart $time  •  $tail", style = HidayahType.Body.copy(fontSize = sp(12.5f)), color = pal.sub)
+                Text("$dayPart $time  •  $tail", style = HidayahType.Body.copy(fontSize = sp(12.5f)), color = OnEmMuted)
             }
             Spacer(Modifier.width((8 * s).dp))
             Box(contentAlignment = Alignment.Center, modifier = Modifier.size((88 * s).dp)) {
@@ -270,7 +348,7 @@ private fun NextPrayerCard(
                     val arcSize = Size(size.width - stroke, size.height - stroke)
                     val topLeft = Offset(stroke / 2f, stroke / 2f)
                     drawArc(
-                        color = Color(0xFFE9E4D2), startAngle = -90f, sweepAngle = 360f, useCenter = false,
+                        color = Color(0x33FBF8ED), startAngle = -90f, sweepAngle = 360f, useCenter = false,
                         topLeft = topLeft, size = arcSize, style = Stroke(stroke)
                     )
                     drawArc(
@@ -278,7 +356,8 @@ private fun NextPrayerCard(
                         topLeft = topLeft, size = arcSize, style = Stroke(stroke, cap = StrokeCap.Round)
                     )
                 }
-                MosqueGlyph(Modifier.size((40 * s).dp), tint = Emerald)
+                MosqueGlyph(Modifier.size((40 * s).dp), tint = Gold)
+            }
             }
         }
     }
@@ -368,27 +447,50 @@ private fun RoundQuickAction(
     onClick: () -> Unit,
     s: Float,
     filledGold: Boolean = false,
+    comingSoon: Boolean = false,
     icon: @Composable (tint: Color) -> Unit
 ) {
     val sp: (Float) -> androidx.compose.ui.unit.TextUnit = { (it * s).sp }
-    val circle = (52 * s).dp
+    val isBn = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language.startsWith("bn")
+    val badgeText = if (isBn) "শীঘ্রই আসছে" else "Up Coming"
+    val circle = (46 * s).dp
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            Modifier
-                .size(circle)
-                .clip(CircleShape)
-                .background(
-                    if (filledGold) Brush.linearGradient(listOf(Gold, Color(0xFFC9A227)))
-                    else Brush.linearGradient(listOf(Color(0xFFFFFFFF).copy(alpha = 0.16f), Color(0xFFFFFFFF).copy(alpha = 0.07f)))
-                )
-                .then(if (filledGold) Modifier else Modifier.border(1.dp, Gold.copy(alpha = 0.45f), CircleShape))
-                .clickable(onClick = onClick),
-            contentAlignment = Alignment.Center
-        ) {
-            icon(if (filledGold) EmeraldDark else Gold)
+        Box {
+            Box(
+                Modifier
+                    .size(circle)
+                    .clip(CircleShape)
+                    .background(
+                        if (filledGold) Brush.linearGradient(listOf(Gold, Color(0xFFC9A227)))
+                        else Brush.linearGradient(listOf(Color(0xFFFFFFFF).copy(alpha = 0.16f), Color(0xFFFFFFFF).copy(alpha = 0.07f)))
+                    )
+                    .then(if (filledGold) Modifier else Modifier.border(1.dp, Gold.copy(alpha = 0.45f), CircleShape))
+                    .clickable(onClick = onClick),
+                contentAlignment = Alignment.Center
+            ) {
+                icon(if (filledGold) EmeraldDark else Gold)
+            }
+            if (comingSoon) {
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 5.dp, y = (-4).dp)
+                        .clip(HidayahShapes.Pill)
+                        .background(Gold)
+                        .padding(horizontal = 4.dp, vertical = 0.5.dp)
+                ) {
+                    Text(
+                        badgeText,
+                        style = HidayahType.Caption.copy(fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.1.sp),
+                        color = EmeraldDark,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+            }
         }
-        Spacer(Modifier.height((5 * s).dp))
-        Text(label, style = HidayahType.Caption.copy(fontSize = sp(12f), fontWeight = FontWeight.SemiBold), color = Cream, maxLines = 1)
+        Spacer(Modifier.height((4 * s).dp))
+        Text(label, style = HidayahType.Caption.copy(fontSize = sp(10.5f), fontWeight = FontWeight.SemiBold), color = Cream, maxLines = 1)
     }
 }
 
@@ -604,6 +706,26 @@ private fun GoldSparkle(modifier: Modifier = Modifier) {
         path.close()
         drawPath(path, color = Gold)
         drawCircle(color = Color(0xFF093A2C), radius = r * 0.18f, center = c)
+    }
+}
+
+@Composable
+private fun KaabaGlyph(modifier: Modifier = Modifier, tint: Color = Gold) {
+    Canvas(modifier) {
+        val u = size.minDimension / 24f
+        // কাবার কিউব
+        drawRoundRect(
+            tint,
+            topLeft = Offset(4.2f * u, 6.0f * u),
+            size = Size(15.6f * u, 12.8f * u),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(1.5f * u)
+        )
+        // কিসওয়া ব্যান্ড (গাঢ় পটভূমি-রঙের পট্টি)
+        drawRect(
+            Color(0xFF062A20),
+            topLeft = Offset(4.2f * u, 10.7f * u),
+            size = Size(15.6f * u, 2.6f * u)
+        )
     }
 }
 

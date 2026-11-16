@@ -1,10 +1,13 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path
-        android:fillColor="#D4AF37"
-        android:pathData="M54,22 C46,30 44,38 44,44 L34,44 C32.5,44 31.5,45 31.5,46.5 L31.5,66 C31.5,67.2 32.4,68 33.6,68 L74.4,68 C75.6,68 76.5,67.2 76.5,66 L76.5,46.5 C76.5,45 75.5,44 74,44 L64,44 C64,38 62,30 54,22 Z M52.2,68 L52.2,54.5 A1.8,3.4 0 0 1 55.8,54.5 L55.8,68 Z M25,34 L20,42 L25,42 Z M80,34 L85,42 L80,42 Z"/>
-    <path
-        android:fillColor="#D4AF37"
-        android:pathData="M52.6,16 L55.4,16 L55.4,21 L52.6,21 Z"/>
+    <!-- লোগো তুলনামূলকভাবে বড় করতে glyph-কে 1.22x স্কেল (পূর্ণ 108dp ক্যানভাসে) -->
+    <group android:scaleX="1.22" android:scaleY="1.22" android:pivotX="54" android:pivotY="44">
+        <path
+            android:fillColor="#D4AF37"
+            android:pathData="M54,22 C46,30 44,38 44,44 L34,44 C32.5,44 31.5,45 31.5,46.5 L31.5,66 C31.5,67.2 32.4,68 33.6,68 L74.4,68 C75.6,68 76.5,67.2 76.5,66 L76.5,46.5 C76.5,45 75.5,44 74,44 L64,44 C64,38 62,30 54,22 Z M52.2,68 L52.2,54.5 A1.8,3.4 0 0 1 55.8,54.5 L55.8,68 Z M25,34 L20,42 L25,42 Z M80,34 L85,42 L80,42 Z"/>
+        <path
+            android:fillColor="#D4AF37"
+            android:pathData="M52.6,16 L55.4,16 L55.4,21 L52.6,21 Z"/>
+    </group>
 </vector>

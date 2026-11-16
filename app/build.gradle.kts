@@ -42,8 +42,8 @@ android {
         applicationId = "com.hidayah.android"
         minSdk = 26
         targetSdk = 34
-        versionCode = 20260007
-        versionName = "2026.00.07"
+        versionCode = 20260008
+        versionName = "2026.00.08"
     }
 
     buildTypes {

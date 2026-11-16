@@ -10,6 +10,8 @@ object Routes {
     const val DESIGN_SYSTEM = "design-system"
     const val DUAS = "duas"
     const val CALENDAR = "calendar"
+    const val PROFILE = "profile"
+    const val PROFILE_EDIT = "profile_edit"
     const val READER = "reader/{surah}"
     fun reader(surah: Int) = "reader/$surah"
 
@@ -28,6 +30,8 @@ object Routes {
         DUAS -> HOME
         CALENDAR -> HOME
         SETTINGS -> SETTINGS
+        PROFILE -> SETTINGS
+        PROFILE_EDIT -> SETTINGS
         DESIGN_SYSTEM -> SETTINGS
         else -> null
     }

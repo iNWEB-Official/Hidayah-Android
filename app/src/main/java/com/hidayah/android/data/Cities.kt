@@ -16,4 +16,17 @@ object Cities {
     )
 
     fun byKey(key: String): City = ALL.firstOrNull { it.key == key } ?: ALL.first()
+
+    /** Straight-line (haversine) reference pointing at the nearest supported city — used for GPS auto-pick. */
+    fun nearestKey(lat: Double, lng: Double): String {
+        fun hav(a: Double, b: Double): Double {
+            val r = 6371.0
+            val dLat = Math.toRadians(a - lat)
+            val dLng = Math.toRadians(b - lng)
+            val h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat)) * Math.cos(Math.toRadians(a)) * Math.sin(dLng / 2) * Math.sin(dLng / 2)
+            return 2 * r * Math.asin(Math.sqrt(h))
+        }
+        return ALL.minByOrNull { hav(it.lat, it.lng) }!!.key
+    }
 }

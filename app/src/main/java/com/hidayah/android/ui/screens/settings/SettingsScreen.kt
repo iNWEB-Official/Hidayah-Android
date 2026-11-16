@@ -25,16 +25,25 @@ import com.hidayah.android.BuildConfig
 import com.hidayah.android.ui.components.*
 import com.hidayah.android.ui.theme.*
 import com.hidayah.android.util.BnDigits
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 
 private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit = {}) {
+fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit = {}, onOpenProfile: () -> Unit = {}) {
     val settings by viewModel.settings.collectAsState()
+    val context = LocalContext.current
+    val displayName = settings.userName.trim().ifBlank { "অতিথি" }
     var showCitySheet by remember { mutableStateOf(false) }
     var showMadhabSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
+
+    val requestGpsCity = rememberNearestCityRequester { key ->
+        if (key != null) viewModel.setCity(key)
+        Toast.makeText(context, gpsResultMessage(context, key), Toast.LENGTH_SHORT).show()
+    }
 
     Column(Modifier.fillMaxSize().background(pal.background)) {
         ScreenTitle(
@@ -47,21 +56,25 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
         ) {
             Spacer(Modifier.height(12.dp))
 
-            // ---------- Profile card ----------
-            Card(shape = HidayahShapes.Medium, colors = CardDefaults.cardColors(containerColor = Emerald)) {
+            // ---------- Profile → প্রোফাইল পেজ ----------
+            Card(
+                shape = HidayahShapes.Medium,
+                colors = CardDefaults.cardColors(containerColor = Emerald),
+                modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenProfile)
+            ) {
                 Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(56.dp).clip(androidx.compose.foundation.shape.CircleShape).background(pal.brandMist),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("র", style = HidayahType.H1, color = Gold)
-                    }
+                    ProfileAvatar(
+                        imagePath = settings.profileImagePath,
+                        displayName = settings.userName,
+                        size = 56.dp
+                    )
                     Spacer(Modifier.width(14.dp))
-                    Column {
-                        Text("রাহিম উদ্দিন", style = HidayahType.TitleSans, color = Cream)
+                    Column(Modifier.weight(1f)) {
+                        Text(displayName, style = HidayahType.TitleSans, color = Cream)
                         Text("${Cities.byKey(settings.cityKey).nameBn}, বাংলাদেশ", style = HidayahType.Caption, color = OnEmMuted)
                         Text("ফ্রি প্ল্যান • হিদায়াহ ${BuildConfig.VERSION_NAME}", style = HidayahType.Caption, color = GoldSoft.copy(alpha = 0.8f))
                     }
+                    Icon(Icons.Filled.ChevronRight, contentDescription = "প্রোফাইল খুলুন", tint = Gold)
                 }
             }
             Spacer(Modifier.height(18.dp))
@@ -225,7 +238,23 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
                 Text("শহর নির্বাচন করুন", style = HidayahType.H2, color = pal.ink)
                 Spacer(Modifier.height(4.dp))
                 Text("নামাজের সময় ও কিবলা এই শহরের ভিত্তিতে হিসাব হবে", style = HidayahType.Caption, color = pal.sub)
-                Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(10.dp))
+                // জিপিএস থেকে স্বয়ংক্রিয় শহর — পারমিশন চেয়ে নিকটতম শহর সেট করবে
+                Surface(
+                    shape = HidayahShapes.Small,
+                    color = pal.brandMist,
+                    modifier = Modifier.fillMaxWidth().clickable {
+                        showCitySheet = false
+                        requestGpsCity()
+                    }
+                ) {
+                    Row(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Filled.MyLocation, contentDescription = null, tint = pal.brand)
+                        Spacer(Modifier.width(10.dp))
+                        Text("জিপিএস থেকে সেট করুন (নিকটতম শহর)", style = HidayahType.BodyMedium, color = pal.ink, modifier = Modifier.weight(1f))
+                    }
+                }
+                Spacer(Modifier.height(10.dp))
                 LazyColumn(Modifier.heightIn(max = 380.dp)) {
                     items(Cities.ALL, key = { it.key }) { city ->
                         val selected = city.key == settings.cityKey
