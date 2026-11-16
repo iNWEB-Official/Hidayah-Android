@@ -75,8 +75,9 @@ jobs:
           APK=app/build/outputs/apk/release/app-release.apk
           echo "apksigner: $APKSIGNER"
           "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/certs.txt
-          EXPECTED="sha-256 digest: 3a:e8:7f:20:01:01:1a:59:b2:55:e1:11:e5:a4:41:4c:d9:8a:2b:51:1a:a2:eb:e8:d2:ac:4b:77:32:d0:ec:62"
-          tr 'A-Z' 'a-z' < /tmp/certs.txt | grep -q "$EXPECTED" \
+          # apksigner আউটপুট continuous lowercase hex (কোনো colon নেই)
+          EXPECTED="3ae87f2001011a59b255e111e5a4414cd98a2b511aa2ebe8d2ac4b7732d0ec62"
+          tr 'A-Z' 'a-z' < /tmp/certs.txt | tr -d ':' | grep -q "certificate sha-256 digest: $EXPECTED" \
             && echo "✅ স্বাক্ষর OK — হিদায়াহর রিলিজ কী (3AE8…EC62)" \
             || { echo "❌ স্বাক্ষর মিলছে না! ভুল কীস্টোর।"; exit 1; }
 
