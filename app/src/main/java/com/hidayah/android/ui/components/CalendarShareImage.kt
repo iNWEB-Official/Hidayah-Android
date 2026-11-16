@@ -187,8 +187,8 @@ object CalendarShareImage {
     }
 
     private fun crescentPath(cx: Float, cy: Float, r: Float): Path {
-        val outer = Path().apply { addOval(RectF(cx - r, cy - r, cx + r, cy + r)) }
-        val cut = Path().apply { addOval(RectF(cx - r + r * 0.42f, cy - r, cx + r + r * 0.42f, cy + r)) }
+        val outer = Path().apply { addOval(RectF(cx - r, cy - r, cx + r, cy + r), Path.Direction.CW) }
+        val cut = Path().apply { addOval(RectF(cx - r + r * 0.42f, cy - r, cx + r + r * 0.42f, cy + r), Path.Direction.CW) }
         return Path().apply { op(outer, cut, Path.Op.DIFFERENCE) }
     }
 
