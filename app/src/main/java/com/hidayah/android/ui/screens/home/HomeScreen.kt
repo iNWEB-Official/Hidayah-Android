@@ -205,7 +205,7 @@ fun HomeScreen(
                         countdownMinutes = homeUi.countdownMinutes,
                         progress = prayerWindowFraction(homeUi.prayerTimes, homeUi.nextIndex, homeUi.nowMinutes),
                         s = s,
-                        modifier = Modifier.weight(1.10f).offset(y = (-30).dp)
+                        modifier = Modifier.weight(1.10f).offset(y = (-14).dp)
                     )
                 } else {
                     Spacer(Modifier.weight(1.12f))
@@ -221,13 +221,13 @@ fun HomeScreen(
                 }
 
                 // ---------- Six times panel ----------
-                PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.weight(0.97f))
+                PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.weight(0.95f))
 
                 // ---------- Quick actions — background-image card ----------
                 Card(
                     shape = HidayahShapes.Medium,
                     colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
-                    modifier = Modifier.fillMaxWidth().weight(1.30f)
+                    modifier = Modifier.fillMaxWidth().weight(1.26f)
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         Image(
@@ -285,7 +285,7 @@ fun HomeScreen(
                 }
 
                 // ---------- Ayah of the day — header row (share/copy বাইরে) + pure card ----------
-                AyahOfDayCard(viewModel, s = s, modifier = Modifier.weight(1.14f).padding(bottom = dp(2f)))
+                AyahOfDayCard(viewModel, s = s, modifier = Modifier.weight(1.26f).padding(bottom = dp(2f)))
             }
         }
     }
