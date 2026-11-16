@@ -77,7 +77,7 @@ jobs:
           "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/certs.txt
           # apksigner আউটপুট continuous lowercase hex (কোনো colon নেই)
           EXPECTED="3ae87f2001011a59b255e111e5a4414cd98a2b511aa2ebe8d2ac4b7732d0ec62"
-          tr 'A-Z' 'a-z' < /tmp/certs.txt | tr -d ':' | grep -q "certificate sha-256 digest: $EXPECTED" \
+          grep -qi "$EXPECTED" /tmp/certs.txt \
             && echo "✅ স্বাক্ষর OK — হিদায়াহর রিলিজ কী (3AE8…EC62)" \
             || { echo "❌ স্বাক্ষর মিলছে না! ভুল কীস্টোর।"; exit 1; }
 
