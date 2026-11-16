@@ -4,7 +4,7 @@
 
 ## [2026.00.07] — ২০২৬-১১-১৬ — (অপ্রকাশিত · রিলিজ বাকি)
 
-> **অবস্থা:** CI (`Build & Test`)-তেই টেস্ট ও বিল্ড — **কোনো লোকাল বিল্ড/রান করা হয়নি** (অর্গ নীতি)। রিলিজ APK এখনো তৈরি/সাইনিং হয়নি।
+> **অবস্থা:** CI (`Build & Test`)-তেই টেস্ট ও বিল্ড — **কোনো লোকাল বিল্ড/রান করা হয়নি** (অর্গ নীতি)। রিলিজ APK এখন **সাইনিংসহ** তৈরি হয় (CI secrets থেকে কীস্টোর ডিকোড)।
 
 ### সংশোধন (Fixed)
 - **ডবল স্ট্যাটাস-বার ইনসেট** — `MainActivity`-তে Scaffold-এর `innerPadding` সম্পূর্ণ প্রয়োগ হতো, আবার Home হেডার `statusBarsPadding()` নিজেই নিলে → হেডারের উপরে বাড়তি ফাঁকা ব্যান্ড। এখন NavHost-এ শুধু `calculateBottomPadding()` প্রয়োগ হয়; প্রতিটি স্ক্রিন নিজের টপ ইনসেট নিজে নেয়।
@@ -15,6 +15,7 @@
 - **বাংলা টাইফোগ্রাফি ফন্ট** — কার্ড ও শেয়ার PNG-তে বাংলা অনুবাদ + রেফারেন্স এখন **Noto Serif Bengali (SemiBold)** (আগের Noto Sans Bengali Regular-এর বদলে); অভ্যন্তরীণ রেন্ডারার (`AyahShareImage`) একই যুক্তিতে আপডেট।
 - **নামাজের সময় প্যানেল + দ্রুত মেনু (কুরআন/কিবলা/দোয়া/তসবিহ) কার্ডে ব্যাকগ্রাউন্ড ইমেজ** — `res/drawable-nodpi/bg_prayer_times.jpg` (মসজিদ-সিলুয়েট, ৮-কোণা তারা জ্যামিতি) ও `bg_quick_actions.jpg` (সোনালি কর্নার অ্যারাবেস্ক); legibility scrim + cream/gold টেক্সট-আইকন রিস্টাইল। AI-জেনারেটেড, ~37/49 KB, কোনো টেক্সট নেই।
 - শেয়ার-ইমেজ (`AyahShareImage`)-এর বাংলা অনুবাদ আকার 29→32px এবং রেফারেন্সও ইটালিক নয় বরং Serif SemiBold।
+- **রিলিজ সাইনিং ওয়্যারিং** — `app/build.gradle.kts`: `keystore.properties` (gitignored, লোকাল) বা CI-তে `HYD_*` env থেকে রিলিজ কী লোড; কী না পেলে স্বয়ংক্রিয়ভাবে unsigned fallback। CI-তে কীস্টোর কখনো রিপোতে নেই: GitHub Secrets `HYD_KEYSTORE_B64` (base64 p12), `HYD_KEYSTORE_PASSWORD`, `HYD_KEY_ALIAS`, `HYD_KEY_PASSWORD` → রানটাইমে `$RUNNER_TEMP/hidayah-release.p12`-এ ডিকোড (chmod 600)। `apksigner verify --print-certs` দিয়ে রিলিজ APK-এর cert SHA-256 যাচাই (`docs/secure/KEYSTORE.md`-এর fingerprint-এ মিলাতে হবে; না মিললে রান fail)। কী/পাসওয়ার্ড মাস্টার কপি: `iNWEB-DOCS/Hidayah-Android` (**private**) → `secure/`। `.gitignore`-এ `*.p12` ও `keystore.properties` যোগ।
 
 ### রিলিজ ২০২৬.০০.০৭
 - `versionName`/`versionCode`: **2026.00.07 / 20260007**; CI-এর aapt badging চেক আপডেট (`versionCode='20260007'`, `versionName='2026.00.07'`), artifact `hidayah-apk-2026.00.07`।

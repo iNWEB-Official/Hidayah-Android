@@ -1,3 +1,22 @@
+import java.io.FileInputStream
+import java.util.Properties
+
+val keystorePropsFile = rootProject.file("keystore.properties")
+val keystoreProps = Properties().apply {
+    if (keystorePropsFile.exists()) {
+        FileInputStream(keystorePropsFile).use { load(it) }
+    }
+}
+// CI: env vars (HYD_*) সরাসরি পাসিং; লোকালে keystore.properties (gitignored)
+val envStoreFile = System.getenv("HYD_KEYSTORE_PATH")?.takeIf { it.isNotBlank() && file(it).exists() }
+val storeFilePath: String? = envStoreFile ?: keystoreProps.getProperty("storeFile")?.takeIf { file(it).exists() }
+val isReleaseSigning = storeFilePath != null
+
+fun signProp(envKey: String, propKey: String): String =
+    System.getenv(envKey)?.takeIf { it.isNotBlank() }
+        ?: keystoreProps.getProperty(propKey)
+        ?: ""
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -6,6 +25,18 @@ plugins {
 android {
     namespace = "com.hidayah.android"
     compileSdk = 34
+
+    // রিলিজ সাইনিং — keystore.properties (gitignored, লোকাল) বা HYD_* env (CI); না থাকলে unsigned
+    signingConfigs {
+        if (isReleaseSigning) {
+            create("release") {
+                storeFile = file(storeFilePath!!)
+                storePassword = signProp("HYD_KEYSTORE_PASSWORD", "storePassword")
+                keyAlias = signProp("HYD_KEY_ALIAS", "keyAlias")
+                keyPassword = signProp("HYD_KEY_PASSWORD", "keyPassword")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.hidayah.android"
@@ -17,6 +48,7 @@ android {
 
     buildTypes {
         release {
+            if (isReleaseSigning) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

@@ -38,14 +38,47 @@ jobs:
         with:
           gradle-version: "8.4"
 
+      # কীস্টোর কখনো রিপোতে নেই — GitHub Secrets থেকে base64-এ ডিকোড হয় (private repo: iNWEB-DOCS, docs/secure/KEYSTORE.md)
+      - name: 🔑 রিলিজ কীস্টোর (secrets থেকে ডিকোড)
+        env:
+          HYD_KEYSTORE_B64: ${{ secrets.HYD_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$HYD_KEYSTORE_B64" ]; then
+            DEST="$RUNNER_TEMP/hidayah-release.p12"
+            echo "$HYD_KEYSTORE_B64" | base64 -d > "$DEST"
+            chmod 600 "$DEST"
+            echo "HYD_KEYSTORE_PATH=$DEST" >> "$GITHUB_ENV"
+            echo "HYD_KEYSTORE_OK=true" >> "$GITHUB_ENV"
+            echo "✅ কীস্টোর ডিকোড হয়েছে ($(stat -c%s "$DEST") bytes)"
+          else
+            echo "HYD_KEYSTORE_OK=false" >> "$GITHUB_ENV"
+            echo "⚠️ HYD_KEYSTORE_B64 secret নেই — Release APK unsigned হবে"
+          fi
       - name: 🧪 Unit tests
         run: gradle :app:testDebugUnitTest --no-daemon --stacktrace
 
       - name: 📦 Debug APK
         run: gradle :app:assembleDebug --no-daemon
 
-      - name: 📦 Release APK (unsigned — R8/minify যাচাই)
+      - name: 📦 Release APK (signed — secrets থাকলে; R8/minify যাচাই)
+        env:
+          HYD_KEYSTORE_PASSWORD: ${{ secrets.HYD_KEYSTORE_PASSWORD }}
+          HYD_KEY_ALIAS: ${{ secrets.HYD_KEY_ALIAS }}
+          HYD_KEY_PASSWORD: ${{ secrets.HYD_KEY_PASSWORD }}
         run: gradle :app:assembleRelease --no-daemon
+
+      - name: 🖊️ Release স্বাক্ষর যাচাই (cert SHA-256 == docs/secure/KEYSTORE.md)
+        if: env.HYD_KEYSTORE_OK == 'true'
+        run: |
+          set -euo pipefail
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort -V | tail -1)
+          APK=app/build/outputs/apk/release/app-release.apk
+          echo "apksigner: $APKSIGNER"
+          "$APKSIGNER" verify --print-certs "$APK" | tee /tmp/certs.txt
+          EXPECTED="sha-256 digest: 3a:e8:7f:20:01:01:1a:59:b2:55:e1:11:e5:a4:41:4c:d9:8a:2b:51:1a:a2:eb:e8:d2:ac:4b:77:32:d0:ec:62"
+          tr 'A-Z' 'a-z' < /tmp/certs.txt | grep -q "$EXPECTED" \
+            && echo "✅ স্বাক্ষর OK — হিদায়াহর রিলিজ কী (3AE8…EC62)" \
+            || { echo "❌ স্বাক্ষর মিলছে না! ভুল কীস্টোর।"; exit 1; }
 
       - name: 🔎 Verify APK badging (versionName/versionCode)
         run: |
@@ -64,5 +97,5 @@ jobs:
           name: hidayah-apk-2026.00.07
           path: |
             app/build/outputs/apk/debug/app-debug.apk
-            app/build/outputs/apk/release/app-release-unsigned.apk
+            app/build/outputs/apk/release/*.apk
           retention-days: 30

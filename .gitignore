@@ -8,6 +8,8 @@ out/
 local.properties
 *.keystore
 *.jks
+*.p12
+keystore.properties
 
 # Android Studio / IntelliJ
 .idea/
