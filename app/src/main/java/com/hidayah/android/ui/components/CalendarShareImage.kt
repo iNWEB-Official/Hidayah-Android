@@ -90,6 +90,13 @@ object CalendarShareImage {
         val cx = w / 2f
         val gold = 0xFFD4AF37.toInt()
 
+        // বিসমিল্লাহ — কার্ডের উপরে (Amiri)
+        val bismillahType = ResourcesCompat.getFont(context, R.font.amiri_regular) ?: Typeface.DEFAULT
+        val bismillah = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = bismillahType; textSize = 34f; color = gold; textAlign = Paint.Align.CENTER
+        }
+        c.drawText("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", cx, 96f, bismillah)
+
         // kicker: ✦ আজকের পঞ্জিকা
         val kicker = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = serif; textSize = 30f; color = gold; letterSpacing = 0.18f; textAlign = Paint.Align.LEFT
@@ -100,31 +107,31 @@ object CalendarShareImage {
             color = gold; style = Paint.Style.STROKE; strokeWidth = 1.5f; strokeJoin = Paint.Join.ROUND
         }
         val kickerStartX = cx - (kickerW + 54f) / 2f
-        c.drawPath(starPath(kickerStartX + 12f, 116f, 11f), spark)
-        c.drawText(kickerText, kickerStartX + 36f, 128f, kicker)
+        c.drawPath(starPath(kickerStartX + 12f, 146f, 11f), spark)
+        c.drawText(kickerText, kickerStartX + 36f, 158f, kicker)
 
         // গ্রেগরিয়ান তারিখ
         val greg = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif; textSize = 46f; color = 0xFFFBF8ED.toInt(); textAlign = Paint.Align.CENTER
         }
-        c.drawText(HijriDates.gregLabelBn(date), cx, 214f, greg)
+        c.drawText(HijriDates.gregLabelBn(date), cx, 252f, greg)
 
         // হিজরি তারিখ
         val hijri = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif; textSize = 33f; color = 0xFFE9D38A.toInt(); textAlign = Paint.Align.CENTER
         }
         val (hy, hm, hd) = HijriDates.gregorianToHijri(date)
-        c.drawText("${BnDigits.of(hd)} ${HijriDates.monthNamesBn[hm - 1]} ${BnDigits.of(hy)} হিজরি", cx, 272f, hijri)
+        c.drawText("${BnDigits.of(hd)} ${HijriDates.monthNamesBn[hm - 1]} ${BnDigits.of(hy)} হিজরি", cx, 308f, hijri)
 
         // বঙ্গাব্দ তারিখ
         val bn = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif; textSize = 33f; color = 0xD9D4AF37.toInt(); textAlign = Paint.Align.CENTER
         }
-        c.drawText(BnCalendar.labelBn(date), cx, 322f, bn)
+        c.drawText(BnCalendar.labelBn(date), cx, 356f, bn)
 
         // divider
         val divider = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x66D4AF37 }
-        c.drawRoundRect(RectF(cx - 230f, 348f, cx + 230f, 351f), 2f, 2f, divider)
+        c.drawRoundRect(RectF(cx - 230f, 382f, cx + 230f, 385f), 2f, 2f, divider)
 
         // রমজান-লাইন (ক্রিসেন্ট গ্লিফসহ, কেন্দ্র-সারিবদ্ধ)
         val ramadanStatus = IslamicSpecialDays.ramadanStatus(date)
@@ -136,7 +143,7 @@ object CalendarShareImage {
         val ramadanPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif; textSize = 31f; color = gold; textAlign = Paint.Align.LEFT
         }
-        drawGlyphTextRow(c, ramadanText, ramadanPaint, 410f, cx, gold, glyph = Glyph.CRESCENT)
+        drawGlyphTextRow(c, ramadanText, ramadanPaint, 446f, cx, gold, glyph = Glyph.CRESCENT)
 
         // নিকটতম বিশেষ দিন (ক্রিসেন্ট লাইনে রমজান বাদ — একই তথ্য দুইবার নয়)
         val (special, specialDays) = IslamicSpecialDays.nearestSpecialDay(date)
@@ -148,14 +155,14 @@ object CalendarShareImage {
         val specialPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif; textSize = 29f; color = 0xFFDCE9DD.toInt(); textAlign = Paint.Align.LEFT
         }
-        drawGlyphTextRow(c, specialText, specialPaint, 474f, cx, 0xFFD4AF37.toInt(), glyph = Glyph.STAR)
+        drawGlyphTextRow(c, specialText, specialPaint, 510f, cx, 0xFFD4AF37.toInt(), glyph = Glyph.STAR)
 
         // brand + ©
         val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = serif; textSize = 21f; color = 0xB3D4AF37.toInt(); letterSpacing = 0.42f; textAlign = Paint.Align.CENTER
         }
-        c.drawText("H I D A Y A H", cx, h - 96f, brandPaint)
-        c.drawPath(starPath(cx, h - 128f, 6f), spark)
+        c.drawText("H I D A Y A H", cx, h - 104f, brandPaint)
+        c.drawPath(starPath(cx, h - 136f, 6f), spark)
 
         val copyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = serif; textSize = 20f; color = 0x8CD4AF37.toInt(); letterSpacing = 0.30f; textAlign = Paint.Align.CENTER

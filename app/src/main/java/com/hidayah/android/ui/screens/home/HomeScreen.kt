@@ -224,6 +224,7 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(Modifier.weight(1f)) {
+                                Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", style = HidayahType.ArabicLarge.copy(fontSize = sp(14.5f)), color = Gold, textAlign = TextAlign.Start, modifier = Modifier.padding(bottom = dp(2f)))
                                 Text(HijriDates.gregLabelBn(cardToday), style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
                                 Text(viewModel.hijriTodayLabel(), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold, modifier = Modifier.padding(top = 2.dp))
                                 Text(BnCalendar.labelBn(cardToday), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold.copy(alpha = 0.85f), modifier = Modifier.padding(top = 1.dp))
