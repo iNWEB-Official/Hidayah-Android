@@ -12,9 +12,9 @@ class QiblaMathTest {
     private val dhakaLng = 90.4125
 
     @Test
-    fun bearingFromDhakaIsApproximately273To274Degrees() {
+    fun bearingFromDhakaIsApproximately277To278Degrees() {
         val bearing = QiblaMath.bearingTo(dhakaLat, dhakaLng)
-        assertTrue("bearing was $bearing", bearing in 272.0..275.0)
+        assertTrue("bearing was $bearing", bearing in 276.5..278.5)
     }
 
     @Test
