@@ -102,28 +102,8 @@ object AyahShareImage {
         val arabicType = ResourcesCompat.getFont(context, R.font.amiri_regular) ?: Typeface.DEFAULT
 
         val cx = w / 2f
-        var y = 108f
 
-        // kicker row: sparkle + আজকের আয়াত
-        val kicker = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = serif
-            textSize = 40f
-            color = 0xFFD4AF37.toInt()
-            letterSpacing = 0.16f
-            textAlign = Paint.Align.CENTER
-        }
-        val kickerText = "আজকের আয়াত"
-        val kickerW = kicker.measureText(kickerText)
-        c.drawText(kickerText, cx + 18f, y, kicker)
-        val spark = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = 0xFFD4AF37.toInt()
-            style = Paint.Style.STROKE
-            strokeWidth = 1.6f
-            strokeJoin = Paint.Join.ROUND
-        }
-        c.drawPath(starPath(cx - kickerW / 2f - 24f, y - 13f, 11f), spark)
-
-        // Arabic verse (auto-shrink, then wrap)
+        // ---------- প্রস্তুতি: আরবি ও বাংলা লাইন মোড়ানো (উচ্চতা পরিমাপের জন্য) ----------
         val maxTextW = w - 150f
         var sizeAu = 62f
         val arabicPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -138,13 +118,6 @@ object AyahShareImage {
             if (lines.size <= 2 || sizeAu <= 34f) break
             sizeAu -= 4f
         }
-        y += 92f
-        lines.forEach { line ->
-            c.drawText(line, cx, y, arabicPaint)
-            y += sizeAu * 1.62f
-        }
-
-        // translation — Noto Serif Bengali (বাংলা টাইফোগ্রাফি ফন্ট)
         var sizeBn = 32f
         val bnPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = bnSerif
@@ -158,32 +131,87 @@ object AyahShareImage {
             if (bnLines.size <= 2 || sizeBn <= 18f) break
             sizeBn -= 2f
         }
-        y += 6f
-        bnLines.forEach { line ->
-            c.drawText(line, cx, y, bnPaint)
-            y += sizeBn * 1.5f
+
+        val spark = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFFD4AF37.toInt()
+            style = Paint.Style.STROKE
+            strokeWidth = 1.6f
+            strokeJoin = Paint.Join.ROUND
         }
 
-        // reference — Noto Serif Bengali
-        val refPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = bnSerif
-            textSize = 25f
-            color = 0xFFE9D38A.toInt()
-            textAlign = Paint.Align.CENTER
-        }
-        y += 14f
-        c.drawText(ayah.reference, cx, y, refPaint)
+        // ---------- কেন্দ্র-ব্লক (© বাদে সব লেখা; প্রতিটি উপাদানের উচ্চতা আলাদা) ----------
+        val elements = mutableListOf<Pair<Float, (Float) -> Unit>>()
 
-        // brand footer + © (সব শেয়ার-ইমেজে বাধ্যতামূলক)
-        val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = serif
-            textSize = 21f
-            color = 0xB3D4AF37.toInt()
-            letterSpacing = 0.42f
-            textAlign = Paint.Align.CENTER
+        elements += 30f to { top ->
+            val kicker = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = serif
+                textSize = 40f
+                color = 0xFFD4AF37.toInt()
+                letterSpacing = 0.16f
+                textAlign = Paint.Align.CENTER
+            }
+            val kt = "আজকের আয়াত"
+            val kw = kicker.measureText(kt)
+            val baseY = top + 26f
+            c.drawText(kt, cx + 18f, baseY, kicker)
+            c.drawPath(starPath(cx - kw / 2f - 6f, baseY - 13f, 11f), spark)
         }
-        c.drawText("H I D A Y A H", cx, h - 92f, brandPaint)
-        c.drawPath(starPath(cx, h - 126f, 6f), spark)
+        elements += 26f to { } // gap
+
+        val arabicH = lines.size * (sizeAu * 1.62f)
+        elements += arabicH to { top ->
+            var yy2 = top + sizeAu * 1.05f
+            lines.forEach { line ->
+                c.drawText(line, cx, yy2, arabicPaint)
+                yy2 += sizeAu * 1.62f
+            }
+        }
+        elements += 6f to { } // gap
+
+        val bnH = bnLines.size * (sizeBn * 1.5f)
+        elements += bnH to { top ->
+            var yy2 = top + sizeBn * 1.1f
+            bnLines.forEach { line ->
+                c.drawText(line, cx, yy2, bnPaint)
+                yy2 += sizeBn * 1.5f
+            }
+        }
+        elements += 14f to { } // gap
+
+        elements += 30f to { top ->
+            val refPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = bnSerif
+                textSize = 25f
+                color = 0xFFE9D38A.toInt()
+                textAlign = Paint.Align.CENTER
+            }
+            c.drawText(ayah.reference, cx, top + 22f, refPaint)
+        }
+        elements += 34f to { } // gap
+
+        elements += 88f to { top ->
+            val brandBn = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = bnSerif
+                textSize = 52f
+                color = 0xFFD4AF37.toInt()
+                textAlign = Paint.Align.CENTER
+            }
+            c.drawText("হিদায়াহ", cx, top + 46f, brandBn)
+            val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = serif
+                textSize = 18f
+                color = 0xB3D4AF37.toInt()
+                letterSpacing = 0.40f
+                textAlign = Paint.Align.CENTER
+            }
+            c.drawText("H I D A Y A H", cx, top + 72f, brandPaint)
+        }
+
+        val blockH = elements.sumOf { (it.first * 10f).toInt() } / 10f
+        val bandTop = 8f
+        val bandBottom = 706f
+        var yPos = bandTop + ((bandBottom - bandTop) - blockH) / 2f
+        elements.forEach { (hgt, draw) -> draw(yPos); yPos += hgt }
 
         val copyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             typeface = serif
@@ -233,3 +261,18 @@ object AyahShareImage {
         return path
     }
 }
+
+/* ═══════════════ ARCHIVED — পুরোনো "H I D A Y A H" এক-লাইন ব্র্যান্ড লকআপ ═══════════════
+ * (বিশেষ দ্রষ্টব্য অনুযায়ী সম্পূর্ণ মোছা হয়নি — প্রয়োজন হলে এখানেই ফিরিয়ে আনুন)
+ *
+ *        val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+ *            typeface = serif
+ *            textSize = 21f
+ *            color = 0xB3D4AF37.toInt()
+ *            letterSpacing = 0.42f
+ *            textAlign = Paint.Align.CENTER
+ *        }
+ *        c.drawText("H I D A Y A H", cx, h - 92f, brandPaint)
+ *        c.drawPath(starPath(cx, h - 126f, 6f), spark)
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════════════ */

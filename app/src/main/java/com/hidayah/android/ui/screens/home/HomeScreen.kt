@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
 import com.hidayah.android.data.hijri.HijriDates
 import com.hidayah.android.data.hijri.IslamicSpecialDays
 import com.hidayah.android.data.bengali.BnCalendar
@@ -45,6 +47,25 @@ import com.hidayah.android.ui.components.*
 import com.hidayah.android.ui.theme.*
 import com.hidayah.android.util.BnDigits
 import java.time.LocalDate
+
+
+/** কার্ডের সকল সংখ্যা-রান বড় ও হাইলাইট সোনালি (GoldSoft); বাকি লেখা স্বাভাবিক রঙে। */
+private fun withBigDigits(text: String, baseSize: Float, baseColor: Color, bigSize: Float, bigColor: Color): androidx.compose.ui.text.AnnotatedString {
+    val digitRe = Regex("[০-৯]+|[0-9]+")
+    return androidx.compose.ui.text.buildAnnotatedString {
+        var last = 0
+        for (m in digitRe.findAll(text)) {
+            if (m.range.first > last) {
+                withStyle(SpanStyle(color = baseColor, fontSize = (baseSize * 1f).sp)) { append(text.substring(last, m.range.first)) }
+            }
+            withStyle(SpanStyle(color = bigColor, fontSize = bigSize.sp, fontWeight = FontWeight.Bold)) { append(m.value) }
+            last = m.range.last + 1
+        }
+        if (last < text.length) {
+            withStyle(SpanStyle(color = baseColor, fontSize = baseSize.sp)) { append(text.substring(last)) }
+        }
+    }
+}
 
 private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
@@ -194,15 +215,16 @@ fun HomeScreen(
                         val cardToday = LocalDate.now()
                         val ramadanStatus = remember { IslamicSpecialDays.ramadanStatus(cardToday) }
                         val (specialDay, specialDaysLeft) = remember { IslamicSpecialDays.nearestSpecialDay(cardToday) }
-                        val ramadanLine = if (ramadanStatus.inRamadan) {
-                            "রমজান চলছে — ঈদ আসতে ${BnDigits.of(ramadanStatus.days.toInt())} দিন"
-                        } else {
-                            "রমজান শুরুতে আর ${BnDigits.of(ramadanStatus.days.toInt())} দিন"
+                        val isFirstRamadan = run {
+                            val (_, hhmm, _) = HijriDates.gregorianToHijri(cardToday)
+                            hhmm == 9 && HijriDates.gregorianToHijri(cardToday).third == 1
                         }
+                        val ramadanPrefix = if (ramadanStatus.inRamadan) "ঈদ আসতে আর মাত্র " else "রমজান শুরু হতে আর মাত্র "
+                        val ramadanLine = withBigDigits(ramadanPrefix + BnDigits.of(ramadanStatus.days.toInt()) + " দিন বাকি আছে।", 11f, Gold, 17f, GoldSoft)
                         val specialLine = if (specialDaysLeft == 0L) {
-                            "নিকটতম: ${specialDay.label} — আজ!"
+                            withBigDigits("নিকটতম বিশেষ দিন: ${specialDay.label} — আজ!", 11f, Cream.copy(alpha = 0.92f), 11f, GoldSoft)
                         } else {
-                            "নিকটতম: ${specialDay.label} — আর ${BnDigits.of(specialDaysLeft.toInt())} দিন"
+                            withBigDigits("নিকটতম বিশেষ দিন: ${specialDay.label} — আর মাত্র ${BnDigits.of(specialDaysLeft.toInt())} দিন পরে।", 11f, Cream.copy(alpha = 0.92f), 16f, GoldSoft)
                         }
                         fun shareCard() {
                             try {
@@ -223,26 +245,33 @@ fun HomeScreen(
                             Modifier.fillMaxWidth().padding(horizontal = dp(14f), vertical = dp(9f)),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(Modifier.weight(1f)) {
-                                Text("بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ", style = HidayahType.ArabicLarge.copy(fontSize = sp(14.5f)), color = Gold, textAlign = TextAlign.Start, modifier = Modifier.padding(bottom = dp(2f)))
-                                Text(HijriDates.gregLabelBn(cardToday), style = HidayahType.BodyMedium.copy(fontSize = sp(14.5f)), color = Cream)
-                                Text(viewModel.hijriTodayLabel(), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold, modifier = Modifier.padding(top = 2.dp))
-                                Text(BnCalendar.labelBn(cardToday), style = HidayahType.Caption.copy(fontSize = sp(12f)), color = Gold.copy(alpha = 0.85f), modifier = Modifier.padding(top = 1.dp))
-                                Row(
-                                    Modifier.padding(top = dp(7f)),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    CrescentGlyph(modifier = Modifier.size(dp(12f)))
-                                    Spacer(Modifier.width(dp(5f)))
-                                    Text(ramadanLine, style = HidayahType.Caption.copy(fontSize = sp(11.5f), fontWeight = FontWeight.SemiBold), color = Gold)
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("বিসমিল্লাহির রাহমানির রাহিম", style = HidayahType.Caption.copy(fontSize = sp(11.5f), fontWeight = FontWeight.Medium), color = Gold.copy(alpha = 0.9f))
+                                Text(withBigDigits(HijriDates.gregLabelBn(cardToday), 14.5f, Cream, 19f, GoldSoft), style = HidayahType.BodyMedium, textAlign = TextAlign.Center)
+                                Text(withBigDigits(viewModel.hijriTodayLabel(), 12f, Gold, 16.5f, GoldSoft), style = HidayahType.Caption, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 2.dp))
+                                Text(withBigDigits(BnCalendar.labelBn(cardToday), 12f, Gold.copy(alpha = 0.85f), 16.5f, GoldSoft), style = HidayahType.Caption, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 1.dp))
+                                if (isFirstRamadan) {
+                                    // রমজানের প্রথম দিন — বড় সবুজ হাইলাইট
+                                    Text("রমাদান মোবারক", style = HidayahType.TitleSans.copy(fontSize = sp(22f), fontWeight = FontWeight.Bold), color = Color(0xFF4ADE80), textAlign = TextAlign.Center, modifier = Modifier.padding(top = dp(7f)))
+                                } else {
+                                    Row(
+                                        Modifier.padding(top = dp(7f)),
+                                        horizontalArrangement = Arrangement.Center,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        CrescentGlyph(modifier = Modifier.size(dp(12f)))
+                                        Spacer(Modifier.width(dp(5f)))
+                                        Text(ramadanLine, style = HidayahType.Caption, textAlign = TextAlign.Center)
+                                    }
                                 }
                                 Row(
                                     Modifier.padding(top = dp(3f)),
+                                    horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     StarGlyph(modifier = Modifier.size(dp(10.5f)))
                                     Spacer(Modifier.width(dp(5f)))
-                                    Text(specialLine, style = HidayahType.Caption.copy(fontSize = sp(11.5f)), color = Cream.copy(alpha = 0.92f))
+                                    Text(specialLine, style = HidayahType.Caption, textAlign = TextAlign.Center, maxLines = 2)
                                 }
                             }
                             Spacer(Modifier.width(dp(8f)))
