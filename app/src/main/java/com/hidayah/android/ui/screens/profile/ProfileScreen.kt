@@ -153,7 +153,7 @@ fun ProfileScreen(
             if (isGuest) {
                 // ============ গেস্ট ব্যানার ============
                 Spacer(Modifier.height(14.dp))
-                Surface(shape = HidayahShapes.Card, color = GoldSoft.copy(alpha = 0.35f)) {
+                Surface(shape = HidayahShapes.Medium, color = GoldSoft.copy(alpha = 0.35f)) {
                     Column(Modifier.padding(14.dp)) {
                         Text(
                             "আপনার নিজস্ব প্রোফাইল তৈরি করুন",

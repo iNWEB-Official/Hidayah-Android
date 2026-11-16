@@ -187,11 +187,11 @@ private fun DefaultAvatarTile(
                 contentDescription = label,
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(HidayahShapes.Card)
+                    .clip(HidayahShapes.Medium)
                     .border(
                         width = if (selected) 3.dp else 1.dp,
                         color = if (selected) Gold else pal.sub.copy(alpha = 0.25f),
-                        shape = HidayahShapes.Card
+                        shape = HidayahShapes.Medium
                     )
                     .clickable(onClick = onClick)
             )
@@ -220,7 +220,7 @@ private fun GalleryTile(onClick: () -> Unit, modifier: Modifier = Modifier) {
         Box(
             Modifier
                 .size(64.dp)
-                .clip(HidayahShapes.Card)
+                .clip(HidayahShapes.Medium)
                 .background(pal.brandOnSurface)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
