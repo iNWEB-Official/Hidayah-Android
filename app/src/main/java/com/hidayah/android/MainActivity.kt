@@ -70,12 +70,25 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
         bottomBar = {
             if (showBottomBar) {
                 HidayahBottomBar(highlightedTab) { route ->
-                    if (route != highlightedTab) {
-                        navController.navigate(route) {
+                    when {
+                        // অন্য ট্যাবে যাচ্ছি — মূল ট্যাবে পৌঁছে দাও
+                        route != highlightedTab -> navController.navigate(route) {
                             popUpTo(Routes.HOME) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
+                        // ট্যাবেরই কোনো সাব-পেজে আছি (যেমন: ক্যালেন্ডার→হোম, প্রোফাইল→সেটিংস, রিডার→কুরআন)
+                        // — আগে back stack-এ ট্যাব খুঁজুন; না থাকলে নতুন করে ট্যাব রুট খুলুন
+                        currentRoute != null && currentRoute != route -> {
+                            val found = navController.popBackStack(route, inclusive = false)
+                            if (!found) {
+                                navController.navigate(route) {
+                                    popUpTo(Routes.HOME) { saveState = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+                        // ইতিমধ্যে ট্যাব রুটে — কিচ্ছু নেই
                     }
                 }
             }
