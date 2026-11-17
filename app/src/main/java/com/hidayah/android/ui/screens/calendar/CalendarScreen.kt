@@ -41,7 +41,7 @@ private val specialDays = listOf(
 )
 
 @Composable
-fun CalendarScreen(onBack: () -> Unit) {
+fun CalendarScreen(onBack: () -> Unit, ayahOfDay: com.hidayah.android.data.quran.AyahOfDay) {
     val today = LocalDate.now()
     val (todayHYear, todayHMonth, todayHDay) = remember { HijriDates.gregorianToHijri(today) }
 
@@ -228,6 +228,9 @@ fun CalendarScreen(onBack: () -> Unit) {
                     Text(HijriDates.monthNamesBn[special.month - 1], style = HidayahType.Caption, color = pal.sub)
                 }
             }
+            // ---------- আজকের আয়াত কার্ড ----------
+            Spacer(Modifier.height(18.dp))
+            AyahOfDayCard(ayahOfDay, s = 1f, fixedCardHeight = 250.dp)
             Spacer(Modifier.height(28.dp))
         }
     }

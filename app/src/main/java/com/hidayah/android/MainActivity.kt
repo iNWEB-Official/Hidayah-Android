@@ -133,7 +133,7 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
                 DuasScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
             composable(Routes.CALENDAR) {
-                CalendarScreen(onBack = { navController.popBackStack() })
+                CalendarScreen(onBack = { navController.popBackStack() }, ayahOfDay = viewModel.ayahOfDay)
             }
             composable(Routes.PROFILE) {
                 ProfileScreen(
