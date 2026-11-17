@@ -3,6 +3,8 @@ package com.hidayah.android.ui.screens.home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -127,7 +129,7 @@ fun HomeScreen(
                     .hidayahStarLattice()
                     .statusBarsPadding()
                     .padding(horizontal = dp(18f))
-                    .padding(top = dp(6f), bottom = dp(44f))
+                    .padding(top = dp(6f), bottom = dp(16f))
             ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -296,15 +298,20 @@ fun HomeScreen(
                 }
             }
 
-            // ============ FIXED BODY — fills the remaining height, every block in its own card ============
+            // ============ BODY — নির্দিষ্ট সাইজ কার্ডসমূহ + স্ক্রল ============
             Column(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(horizontal = padH),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = padH)
+                    .padding(top = dp(14f), bottom = dp(10f)),
                 verticalArrangement = Arrangement.spacedBy(gap)
             ) {
-                // ---------- Next prayer — cream card overlapping the header ----------
+                // ---------- ① আজকের আয়াত কার্ড ----------
+                AyahOfDayCard(viewModel.ayahOfDay, s = s, fixedCardHeight = 264.dp)
+
+                // ---------- ② পরবর্তী নামাজ — ক্রিম কার্ড ----------
                 val next = homeUi.prayerTimes.getOrNull(homeUi.nextIndex)
                 if (next != null) {
                     NextPrayerCard(
@@ -314,13 +321,13 @@ fun HomeScreen(
                         countdownMinutes = homeUi.countdownMinutes,
                         progress = prayerWindowFraction(homeUi.prayerTimes, homeUi.nextIndex, homeUi.nowMinutes),
                         s = s,
-                        modifier = Modifier.weight(1.10f).offset(y = (-14).dp)
+                        modifier = Modifier.height(148.dp)
                     )
                 } else {
-                    Spacer(Modifier.weight(1.12f))
+                    Spacer(Modifier.height(148.dp))
                 }
 
-                // ---------- Section header ----------
+                // ---------- ③ পরবর্তী নামাজের সময়সূচী — সেকশন হেডার ----------
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("আজকের নামাজের সময়", style = HidayahType.TitleSans.copy(fontSize = sp(15f)), color = pal.ink, modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -329,14 +336,14 @@ fun HomeScreen(
                     }
                 }
 
-                // ---------- Six times panel ----------
-                PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.weight(0.95f))
+                // ---------- ③ সময়সূচী প্যানেল ----------
+                PrayerTimesPanel(times = homeUi.prayerTimes, nextIndex = homeUi.nextIndex, s = s, modifier = Modifier.height(122.dp))
 
-                // ---------- Quick actions — background-image card ----------
+                // ---------- ④ মেনু কার্ড — background-image ----------
                 Card(
                     shape = HidayahShapes.Medium,
                     colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
-                    modifier = Modifier.fillMaxWidth().weight(1.26f)
+                    modifier = Modifier.fillMaxWidth().height(156.dp)
                 ) {
                     Box(Modifier.fillMaxSize()) {
                         Image(
@@ -392,9 +399,6 @@ fun HomeScreen(
                         }
                     }
                 }
-
-                // ---------- Ayah of the day — header row (share/copy বাইরে) + pure card ----------
-                AyahOfDayCard(viewModel.ayahOfDay, s = s, modifier = Modifier.weight(1.26f).padding(bottom = dp(2f)))
             }
         }
     }

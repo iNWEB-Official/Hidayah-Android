@@ -49,13 +49,13 @@ jobs:
           set -euo pipefail
           AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt | sort -V | tail -1)
           APK=app/build/outputs/apk/debug/app-debug.apk
-          "$AAPT" dump badging "$APK" | grep -q "versionCode='20260016'"
-          "$AAPT" dump badging "$APK" | grep -q "versionName='1.0.5'"
-          echo "✅ badging OK: versionCode=20260016 versionName=1.0.5"
+          "$AAPT" dump badging "$APK" | grep -q "versionCode='20260017'"
+          "$AAPT" dump badging "$APK" | grep -q "versionName='1.0.6'"
+          echo "✅ badging OK: versionCode=20260017 versionName=1.0.6"
 
       - name: ⬆️ Upload debug APK artifact (১৪ দিনের রিটেনশন)
         uses: actions/upload-artifact@v4
         with:
-          name: hidayah-debug-1.0.5-20260016
+          name: hidayah-debug-1.0.6-20260017
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14

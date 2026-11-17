@@ -19,6 +19,9 @@ import java.io.FileOutputStream
 /**
  * Renders the "আজকের আয়াত" share card as a crisp 1080px PNG for social media,
  * independent of the device screen — same artwork as AyahCardArtwork / ayah-card-background.svg.
+ *
+ * ① উপরের "বিসমিল্লাহির রাহমানির রাহিম" (বাংলা, ছোট — সব লেখার সাথে কেন্দ্র নয়, ফিক্সড)
+ * ② নিচের "© iNWEB Official" — এই দুইটি কেন্দ্র-গণনার বাইরে (ফিক্সড উপরে/নিচে)।
  */
 object AyahShareImage {
 
@@ -102,6 +105,12 @@ object AyahShareImage {
         val arabicType = ResourcesCompat.getFont(context, R.font.amiri_regular) ?: Typeface.DEFAULT
 
         val cx = w / 2f
+
+        // ===== ফিক্সড: উপরের বিসমিল্লাহ (বাংলা, ছোট) =====
+        val bismillah = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            typeface = bnSerif; textSize = 26f; color = 0xFFD4AF37.toInt(); textAlign = Paint.Align.CENTER
+        }
+        c.drawText("বিসমিল্লাহির রাহমানির রাহিম", cx, 68f, bismillah)
 
         // ---------- প্রস্তুতি: আরবি ও বাংলা লাইন মোড়ানো (উচ্চতা পরিমাপের জন্য) ----------
         val maxTextW = w - 150f
@@ -208,8 +217,9 @@ object AyahShareImage {
         }
 
         val blockH = elements.sumOf { (it.first * 10f).toInt() } / 10f
-        val bandTop = 8f
-        val bandBottom = 706f
+        // কেন্দ্র-গণনা: বিসমিল্লাহের নিচ (78) থেকে ©-এর উপর (646) পর্যন্ত ব্যান্ডের মাঝে
+        val bandTop = 78f
+        val bandBottom = 646f
         var yPos = bandTop + ((bandBottom - bandTop) - blockH) / 2f
         elements.forEach { (hgt, draw) -> draw(yPos); yPos += hgt }
 
@@ -220,7 +230,8 @@ object AyahShareImage {
             letterSpacing = 0.30f
             textAlign = Paint.Align.CENTER
         }
-        c.drawText("© iNWEB Official", cx, h - 32f, copyPaint)
+        // ===== ফিক্সড: নিচের © =====
+        c.drawText("© iNWEB Official", cx, h - 44f, copyPaint)
 
         // write PNG
         val dir = File(context.cacheDir, "shared").apply { mkdirs() }

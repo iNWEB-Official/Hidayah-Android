@@ -143,6 +143,14 @@ fun AyahOfDayCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
+                    "বিসমিল্লাহির রাহমানির রাহিম",
+                    style = HidayahType.Caption.copy(fontSize = sp(11f), fontWeight = FontWeight.Medium),
+                    color = Gold.copy(alpha = 0.9f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(dpv(4f)))
+                Text(
                     ayah.arabic,
                     style = HidayahType.ArabicLarge.copy(fontSize = sp(22.5f), lineHeight = (34 * s).sp),
                     color = Cream,
@@ -178,8 +186,23 @@ fun AyahOfDayCard(
                 )
                 Spacer(Modifier.height(dpv(5f)))
                 Text(
+                    "হিদায়াহ",
+                    style = HidayahType.TitleSans.copy(fontSize = sp(14.5f), fontWeight = FontWeight.SemiBold, fontFamily = NotoSerifBengali),
+                    color = Gold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
                     "H I D A Y A H",
-                    style = HidayahType.Overline.copy(color = Gold.copy(alpha = 0.75f), fontSize = sp(8.5f), letterSpacing = 3.2.sp),
+                    style = HidayahType.Overline.copy(color = Gold.copy(alpha = 0.75f), fontSize = sp(7.5f), letterSpacing = 3.2.sp),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(dpv(4f)))
+                Text(
+                    "© iNWEB Official",
+                    style = HidayahType.Overline.copy(fontSize = sp(7f), letterSpacing = 1.6.sp, fontWeight = FontWeight.Medium),
+                    color = Gold.copy(alpha = 0.55f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
