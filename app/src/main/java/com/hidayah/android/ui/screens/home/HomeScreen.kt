@@ -90,7 +90,6 @@ fun HomeScreen(
     val homeUi by viewModel.homeUi.collectAsState()
     val homeSettings by viewModel.settings.collectAsState()
     val localContext = LocalContext.current
-    val useBangla = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language.startsWith("bn")
     var locationMenuExpanded by remember { mutableStateOf(false) }
     val displayName = homeSettings.userName.trim().ifBlank { "অতিথি" }
 
@@ -108,9 +107,9 @@ fun HomeScreen(
     LaunchedEffect(homeSettings.useGpsLocation) {
         if (homeSettings.useGpsLocation) silentGpsRefresh()
     }
-    val comingSoonMsg = if (useBangla) "শীঘ্রই আসছে" else "Up Coming"
     val showComingSoon: () -> Unit = {
-        android.widget.Toast.makeText(localContext, comingSoonMsg, android.widget.Toast.LENGTH_SHORT).show()
+        // শীঘ্রই-আসছে লেখা বাদ — শুধু লক চিহ্ন ছুঁড়ে দাও (ব্যাজের সাথে মিল)
+        android.widget.Toast.makeText(localContext, "🔒", android.widget.Toast.LENGTH_SHORT).show()
     }
 
     BoxWithConstraints(
@@ -579,8 +578,6 @@ private fun RoundQuickAction(
     icon: @Composable (tint: Color) -> Unit
 ) {
     val sp: (Float) -> androidx.compose.ui.unit.TextUnit = { (it * s).sp }
-    val isBn = androidx.compose.ui.platform.LocalConfiguration.current.locales[0].language.startsWith("bn")
-    val badgeText = if (isBn) "শীঘ্রই আসছে" else "Up Coming"
     val circle = (46 * s).dp
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box {
@@ -599,20 +596,22 @@ private fun RoundQuickAction(
                 icon(if (filledGold) EmeraldDark else Gold)
             }
             if (comingSoon) {
+                // শীঘ্রই-আসছে লেখা বাদ — গোল্ড ব্যাজে লক আইকন
                 Box(
                     Modifier
                         .align(Alignment.TopEnd)
-                        .offset(x = 5.dp, y = (-4).dp)
-                        .clip(HidayahShapes.Pill)
+                        .offset(x = 4.dp, y = (-4).dp)
+                        .size(17.dp)
+                        .clip(CircleShape)
                         .background(Gold)
-                        .padding(horizontal = 4.dp, vertical = 0.5.dp)
+                        .border(1.dp, EmeraldDark.copy(alpha = 0.45f), CircleShape),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        badgeText,
-                        style = HidayahType.Caption.copy(fontSize = 6.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.1.sp),
-                        color = EmeraldDark,
-                        maxLines = 1,
-                        softWrap = false
+                    Icon(
+                        Icons.Filled.Lock,
+                        contentDescription = "শীঘ্রই আসছে",
+                        tint = EmeraldDark,
+                        modifier = Modifier.size(10.dp)
                     )
                 }
             }
