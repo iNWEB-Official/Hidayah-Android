@@ -7,6 +7,7 @@ object Routes {
     const val QIBLA = "qibla"
     const val TASBIH = "tasbih"
     const val SETTINGS = "settings"
+    const val MENU = "menu"
     const val DESIGN_SYSTEM = "design-system"
     const val DUAS = "duas"
     const val CALENDAR = "calendar"
@@ -15,7 +16,7 @@ object Routes {
     const val READER = "reader/{surah}"
     fun reader(surah: Int) = "reader/$surah"
 
-    val tabRoutes = setOf(HOME, QURAN, QIBLA, TASBIH, SETTINGS)
+    val tabRoutes = setOf(HOME, QURAN, QIBLA, TASBIH, MENU)
 
     /** First-run install flow — the bottom navigation bar is hidden here (per product decision). */
     val installFlowRoutes = setOf(COVER)
@@ -27,12 +28,13 @@ object Routes {
         READER -> QURAN
         QIBLA -> QIBLA
         TASBIH -> TASBIH
-        DUAS -> HOME
-        CALENDAR -> HOME
-        SETTINGS -> SETTINGS
-        PROFILE -> SETTINGS
-        PROFILE_EDIT -> SETTINGS
-        DESIGN_SYSTEM -> SETTINGS
+        DUAS -> MENU
+        CALENDAR -> MENU
+        SETTINGS -> MENU
+        PROFILE -> MENU
+        PROFILE_EDIT -> MENU
+        DESIGN_SYSTEM -> MENU
+        MENU -> MENU
         else -> null
     }
 

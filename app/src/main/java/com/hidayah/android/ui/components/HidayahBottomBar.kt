@@ -24,14 +24,14 @@ private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
 data class TabSpec(val route: String, @StringRes val labelRes: Int, val iconKind: IconKind)
 
-enum class IconKind { Home, Quran, Qibla, Tasbih, Settings }
+enum class IconKind { Home, Quran, Qibla, Tasbih, Menu }
 
 val hidayahTabs = listOf(
     TabSpec("home", R.string.tab_home, IconKind.Home),
     TabSpec("quran", R.string.tab_quran, IconKind.Quran),
     TabSpec("qibla", R.string.tab_qibla, IconKind.Qibla),
     TabSpec("tasbih", R.string.tab_tasbih, IconKind.Tasbih),
-    TabSpec("settings", R.string.tab_settings, IconKind.Settings)
+    TabSpec("menu", R.string.tab_menu, IconKind.Menu)
 )
 
 /** Bottom navigation from mockup 01-home: cream bar, emerald active tab with a short gold top indicator. */
@@ -82,6 +82,6 @@ private fun TabIcon(kind: IconKind, tint: Color, size: Int) {
         IconKind.Quran -> Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = tint, modifier = Modifier.size(size.dp))
         IconKind.Qibla -> Icon(Icons.Filled.Explore, contentDescription = null, tint = tint, modifier = Modifier.size(size.dp))
         IconKind.Tasbih -> com.hidayah.android.ui.screens.home.TasbihBeadsIcon(tint = tint, modifier = Modifier.size(size.dp))
-        IconKind.Settings -> Icon(Icons.Filled.Settings, contentDescription = null, tint = tint, modifier = Modifier.size(size.dp))
+        IconKind.Menu -> Icon(Icons.Filled.Menu, contentDescription = null, tint = tint, modifier = Modifier.size(size.dp))
     }
 }

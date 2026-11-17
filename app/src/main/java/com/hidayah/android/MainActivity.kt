@@ -20,6 +20,7 @@ import com.hidayah.android.ui.navigation.Routes
 import com.hidayah.android.ui.screens.calendar.CalendarScreen
 import com.hidayah.android.ui.screens.cover.CoverScreen
 import com.hidayah.android.ui.screens.dua.DuasScreen
+import com.hidayah.android.ui.screens.menu.MenuScreen
 import com.hidayah.android.ui.screens.home.HomeScreen
 import com.hidayah.android.ui.screens.profile.ProfileScreen
 import com.hidayah.android.ui.screens.profile.ProfileEditScreen
@@ -148,6 +149,14 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() },
                     onOpenSettings = { navController.navigate(Routes.SETTINGS) }
+                )
+            }
+            composable(Routes.MENU) {
+                MenuScreen(
+                    onOpenSettings = { navController.navigate(Routes.SETTINGS) },
+                    onOpenCalendar = { navController.navigate(Routes.CALENDAR) },
+                    onOpenDuas = { navController.navigate(Routes.DUAS) },
+                    onOpenProfile = { navController.navigate(Routes.PROFILE) }
                 )
             }
             composable(Routes.SETTINGS) { SettingsScreen(viewModel = viewModel, onOpenDesignSystem = { navController.navigate(Routes.DESIGN_SYSTEM) }, onOpenProfile = { navController.navigate(Routes.PROFILE) }) }
