@@ -13,6 +13,7 @@ object Routes {
     const val CALENDAR = "calendar"
     const val PROFILE = "profile"
     const val PROFILE_EDIT = "profile_edit"
+    const val ABOUT = "about"
     const val READER = "reader/{surah}"
     fun reader(surah: Int) = "reader/$surah"
 
@@ -33,6 +34,7 @@ object Routes {
         SETTINGS -> MENU
         PROFILE -> MENU
         PROFILE_EDIT -> MENU
+        ABOUT -> MENU
         DESIGN_SYSTEM -> MENU
         MENU -> MENU
         else -> null

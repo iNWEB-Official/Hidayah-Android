@@ -21,6 +21,7 @@ import com.hidayah.android.ui.screens.calendar.CalendarScreen
 import com.hidayah.android.ui.screens.cover.CoverScreen
 import com.hidayah.android.ui.screens.dua.DuasScreen
 import com.hidayah.android.ui.screens.menu.MenuScreen
+import com.hidayah.android.ui.screens.about.AboutScreen
 import com.hidayah.android.ui.screens.home.HomeScreen
 import com.hidayah.android.ui.screens.profile.ProfileScreen
 import com.hidayah.android.ui.screens.profile.ProfileEditScreen
@@ -72,11 +73,10 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
             if (showBottomBar) {
                 HidayahBottomBar(highlightedTab) { route ->
                     when {
-                        // অন্য ট্যাবে যাচ্ছি — মূল ট্যাবে পৌঁছে দাও
+                        // অন্য ট্যাবে যাচ্ছি — প্রতিবার ট্যাবের মূল পৃষ্ঠাই খুলবে (সাব-পেজে ফেরৎ নয়)
                         route != highlightedTab -> navController.navigate(route) {
-                            popUpTo(Routes.HOME) { saveState = true }
+                            popUpTo(Routes.HOME)
                             launchSingleTop = true
-                            restoreState = true
                         }
                         // ট্যাবেরই কোনো সাব-পেজে আছি (যেমন: ক্যালেন্ডার→হোম, প্রোফাইল→সেটিংস, রিডার→কুরআন)
                         // — আগে back stack-এ ট্যাব খুঁজুন; না থাকলে নতুন করে ট্যাব রুট খুলুন
@@ -134,7 +134,7 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
                 DuasScreen(viewModel = viewModel, onBack = { navController.popBackStack() })
             }
             composable(Routes.CALENDAR) {
-                CalendarScreen(onBack = { navController.popBackStack() }, ayahOfDay = viewModel.ayahOfDay)
+                CalendarScreen(onBack = { navController.popBackStack() }, viewModel = viewModel)
             }
             composable(Routes.PROFILE) {
                 ProfileScreen(
@@ -156,10 +156,12 @@ fun HidayahApp(viewModel: HidayahViewModel = viewModel()) {
                     onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                     onOpenCalendar = { navController.navigate(Routes.CALENDAR) },
                     onOpenDuas = { navController.navigate(Routes.DUAS) },
-                    onOpenProfile = { navController.navigate(Routes.PROFILE) }
+                    onOpenProfile = { navController.navigate(Routes.PROFILE) },
+                    onOpenAbout = { navController.navigate(Routes.ABOUT) }
                 )
             }
-            composable(Routes.SETTINGS) { SettingsScreen(viewModel = viewModel, onOpenDesignSystem = { navController.navigate(Routes.DESIGN_SYSTEM) }, onOpenProfile = { navController.navigate(Routes.PROFILE) }) }
+            composable(Routes.SETTINGS) { SettingsScreen(viewModel = viewModel) }
+            composable(Routes.ABOUT) { AboutScreen(onBack = { navController.popBackStack() }) }
             composable(Routes.DESIGN_SYSTEM) { DesignSystemScreen(onBack = { navController.popBackStack() }) }
         }
     }

@@ -48,7 +48,8 @@ fun MenuScreen(
     onOpenSettings: () -> Unit,
     onOpenCalendar: () -> Unit,
     onOpenDuas: () -> Unit,
-    onOpenProfile: () -> Unit = {}
+    onOpenProfile: () -> Unit = {},
+    onOpenAbout: () -> Unit = {}
 ) {
     val context = LocalContext.current
     // তৈরি হয়নি — শুধু 🔒 টোস্ট (হোমের coming-soon বাটনের মতো)
@@ -68,6 +69,9 @@ fun MenuScreen(
         },
         MenuItem("প্রোফাইল", locked = false, onClick = onOpenProfile) { tint ->
             Icon(Icons.Filled.Person, contentDescription = null, tint = tint, modifier = Modifier.size(30.dp))
+        },
+        MenuItem("অ্যাপ সম্পর্কে", locked = false, onClick = onOpenAbout) { tint ->
+            Icon(Icons.Filled.Info, contentDescription = null, tint = tint, modifier = Modifier.size(30.dp))
         }
     )
 
@@ -207,26 +211,16 @@ private fun MenuGridCell(item: MenuItem, modifier: Modifier = Modifier) {
                             .border(1.dp, circleLine, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        item.icon(iconTint)
-                    }
-                    if (locked) {
-                        // হোমের আসন্ন-ফিচার ব্যাজের মতো — গোল্ড গোল + গাঢ় লক
-                        Box(
-                            Modifier
-                                .align(Alignment.TopEnd)
-                                .offset(x = 3.dp, y = (-3).dp)
-                                .size(17.dp)
-                                .clip(CircleShape)
-                                .background(Gold)
-                                .border(1.dp, EmeraldDark.copy(alpha = 0.45f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        // লকড সেল: ফিচার-আইকনের বদলে মাঝখানে স্পষ্ট গোল্ড লক
+                        if (locked) {
                             Icon(
                                 Icons.Filled.Lock,
                                 contentDescription = "শীঘ্রই আসছে",
-                                tint = EmeraldDark,
-                                modifier = Modifier.size(10.dp)
+                                tint = Gold.copy(alpha = 0.8f),
+                                modifier = Modifier.size(26.dp)
                             )
+                        } else {
+                            item.icon(iconTint)
                         }
                     }
                 }

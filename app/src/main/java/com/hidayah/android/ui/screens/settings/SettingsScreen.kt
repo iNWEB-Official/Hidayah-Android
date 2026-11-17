@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hidayah.android.data.Cities
 import com.hidayah.android.state.HidayahViewModel
-import com.hidayah.android.BuildConfig
 import com.hidayah.android.ui.components.*
 import com.hidayah.android.ui.theme.*
 import com.hidayah.android.util.BnDigits
@@ -32,10 +31,9 @@ private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit = {}, onOpenProfile: () -> Unit = {}) {
+fun SettingsScreen(viewModel: HidayahViewModel) {
     val settings by viewModel.settings.collectAsState()
     val context = LocalContext.current
-    val displayName = settings.userName.trim().ifBlank { "অতিথি" }
     var showCitySheet by remember { mutableStateOf(false) }
     var showMadhabSheet by remember { mutableStateOf(false) }
     var showThemeSheet by remember { mutableStateOf(false) }
@@ -60,30 +58,7 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)
         ) {
-            Spacer(Modifier.height(12.dp))
-
-            // ---------- Profile → প্রোফাইল পেজ ----------
-            Card(
-                shape = HidayahShapes.Medium,
-                colors = CardDefaults.cardColors(containerColor = Emerald),
-                modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenProfile)
-            ) {
-                Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    ProfileAvatar(
-                        imagePath = settings.profileImagePath,
-                        displayName = settings.userName,
-                        size = 56.dp
-                    )
-                    Spacer(Modifier.width(14.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(displayName, style = HidayahType.TitleSans, color = Cream)
-                        Text(locationSubtitle, style = HidayahType.Caption, color = OnEmMuted)
-                        Text("ফ্রি প্ল্যান • হিদায়াহ ${BuildConfig.VERSION_NAME}", style = HidayahType.Caption, color = GoldSoft.copy(alpha = 0.8f))
-                    }
-                    Icon(Icons.Filled.ChevronRight, contentDescription = "প্রোফাইল খুলুন", tint = Gold)
-                }
-            }
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(4.dp))
 
             // ---------- Appearance ----------
             SectionLabel("চেহারা")
@@ -167,32 +142,6 @@ fun SettingsScreen(viewModel: HidayahViewModel, onOpenDesignSystem: () -> Unit =
             }
             Spacer(Modifier.height(18.dp))
 
-            // ---------- About ----------
-            SectionLabel("অ্যাপ সম্পর্কে")
-            Spacer(Modifier.height(8.dp))
-            SettingsGroup {
-                SettingsRow(
-                    icon = Icons.Filled.Info,
-                    title = "হিদায়াহ ${BuildConfig.VERSION_NAME}",
-                    subtitle = "নামাজ • কুরআন • কিবলা • তসবিহ • দুয়া",
-                    trailing = {}
-                )
-                HorizontalDivider(color = pal.line, thickness = 0.6.dp)
-                SettingsRow(
-                    icon = Icons.Filled.VerifiedUser,
-                    title = "উৎস ও সঠিকতা",
-                    subtitle = "নামাজের সময় জ্যোতির্বৈজ্ঞানিক হিসাব (MWL, ফজর ১৮°/এশা ১৭°); হিজরি তারিখ উম্মুল-ক্বুরা ক্যালেন্ডার",
-                    trailing = {}
-                )
-                HorizontalDivider(color = pal.line, thickness = 0.6.dp)
-                SettingsRow(
-                    icon = Icons.Filled.Palette,
-                    title = "ডিজাইন সিস্টেম",
-                    subtitle = "হিদায়াহ UI কভার — রং, টাইপোগ্রাফি, স্ক্রিন সূচী",
-                    onClick = onOpenDesignSystem,
-                    trailing = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = pal.sub) }
-                )
-            }
             Spacer(Modifier.height(24.dp))
             Text(
                 "بِسْمِ ٱللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
