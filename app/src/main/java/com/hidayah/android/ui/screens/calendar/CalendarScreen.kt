@@ -230,7 +230,7 @@ fun CalendarScreen(onBack: () -> Unit, ayahOfDay: com.hidayah.android.data.quran
             }
             // ---------- আজকের আয়াত কার্ড ----------
             Spacer(Modifier.height(18.dp))
-            AyahOfDayCard(ayahOfDay, s = 1f, fixedCardHeight = 264.dp)
+            AyahOfDayCard(ayahOfDay, s = 1f)
             Spacer(Modifier.height(28.dp))
         }
     }

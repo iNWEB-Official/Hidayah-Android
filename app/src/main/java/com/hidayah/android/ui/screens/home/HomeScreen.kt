@@ -72,9 +72,10 @@ private fun withBigDigits(text: String, baseSize: Float, baseColor: Color, bigSi
 private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
 /**
- * Home — FIXED, non-scrolling dashboard. Every block lives in its own card and
- * the whole layout scales with the available screen height (uniform scale factor),
- * so nothing is ever cut off. Locked to portrait via the manifest.
+ * Home — সম্পূর্ণ পৃষ্ঠা স্ক্রল; শুধু ফুটার নেভিবার স্থির (Scaffold-এর bottomBar)।
+ * ব্যাকগ্রাউন্ড: এম্যারাল্ড গ্রেডিয়েন্ট + গোল্ড তারার জাল — সব থিমে ব্র্যান্ড-লকড
+ * (mockup 01-home / preview.html-এর মতো)। কন্টেন্ট কন্টেন্ট-মাফিক; কার্ডগুলো auto উচ্চতা।
+ * Locked to portrait via the manifest.
  */
 @Composable
 fun HomeScreen(
@@ -112,7 +113,16 @@ fun HomeScreen(
         android.widget.Toast.makeText(localContext, comingSoonMsg, android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(pal.background)) {
+    BoxWithConstraints(
+        Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF11493A), Color(0xFF0D3A2C), Color(0xFF082A20), Color(0xFF041A12))
+                )
+            )
+            .hidayahStarLattice()
+    ) {
         // uniform scale relative to a ~780dp tall reference viewport
         val s = (maxHeight.value / 780f).coerceIn(0.72f, 1.06f)
         val dp: (Float) -> Dp = { (it * s).dp }
@@ -121,15 +131,21 @@ fun HomeScreen(
         val padH = dp(14f)
 
         Column(Modifier.fillMaxSize()) {
-            // ============ EMERALD HEADER (star lattice) — mockup 01-home ============
+            // স্ট্যাটাসবার inset স্থির (স্ক্রল করলেও কনটেন্ট তার নিচে যাবে না)
+            Spacer(Modifier.statusBarsPadding())
+            // ============ সম্পূর্ণ পৃষ্ঠা স্ক্রল — নেভিবার ছাড়া সবকিছু ============
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+            // ============ EMERALD HEADER — ব্যাকগ্রাউন্ড এখন সম্পূর্ণ পৃষ্ঠাব্যাপী, স্বচ্ছ ============
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .background(Brush.verticalGradient(listOf(Color(0xFF11493A), Color(0xFF0D3A2C), Color(0xFF082A20))))
-                    .hidayahStarLattice()
-                    .statusBarsPadding()
                     .padding(horizontal = dp(18f))
-                    .padding(top = dp(6f), bottom = dp(16f))
+                    .padding(top = dp(4f), bottom = dp(14f))
             ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -298,18 +314,16 @@ fun HomeScreen(
                 }
             }
 
-            // ============ BODY — নির্দিষ্ট সাইজ কার্ডসমূহ + স্ক্রল ============
+            // ============ BODY — কার্ডসমূহ (একই স্ক্রল পৃষ্ঠার মধ্যে) ============
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
                     .padding(horizontal = padH)
-                    .padding(top = dp(14f), bottom = dp(10f)),
+                    .padding(top = dp(2f), bottom = dp(16f)),
                 verticalArrangement = Arrangement.spacedBy(gap)
             ) {
                 // ---------- ① আজকের আয়াত কার্ড ----------
-                AyahOfDayCard(viewModel.ayahOfDay, s = s, fixedCardHeight = 264.dp)
+                AyahOfDayCard(viewModel.ayahOfDay, s = s, headerOnDark = true)
 
                 // ---------- ② পরবর্তী নামাজ — ক্রিম কার্ড ----------
                 val next = homeUi.prayerTimes.getOrNull(homeUi.nextIndex)
@@ -329,10 +343,10 @@ fun HomeScreen(
 
                 // ---------- ③ পরবর্তী নামাজের সময়সূচী — সেকশন হেডার ----------
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("আজকের নামাজের সময়", style = HidayahType.TitleSans.copy(fontSize = sp(15f)), color = pal.ink, modifier = Modifier.weight(1f))
+                    Text("আজকের নামাজের সময়", style = HidayahType.TitleSans.copy(fontSize = sp(15f)), color = Cream, modifier = Modifier.weight(1f))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("সম্পূর্ণ সূচি", style = HidayahType.Caption.copy(fontSize = sp(12.5f)), color = GoldDeep)
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = GoldDeep, modifier = Modifier.size(dp(16f)))
+                        Text("সম্পূর্ণ সূচি", style = HidayahType.Caption.copy(fontSize = sp(12.5f)), color = GoldSoft)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = GoldSoft, modifier = Modifier.size(dp(16f)))
                     }
                 }
 
@@ -399,6 +413,7 @@ fun HomeScreen(
                         }
                     }
                 }
+            }
             }
         }
     }

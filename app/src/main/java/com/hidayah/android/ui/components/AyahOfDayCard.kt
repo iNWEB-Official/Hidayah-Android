@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
@@ -40,15 +39,17 @@ private val pal: HidayahPalette @Composable get() = LocalHidayahPalette.current
 
 /**
  * @param s স্কেল ফ্যাক্টর (হোমের ক্ষেত্রে); ক্যালেন্ডারের মতো ফিক্সড-লেআউটে 1f
- * @param fixedCardHeight null হলে কার্ডটি বাকি জায়গা পূরণ করে (weighted Column-এ);
- *                       স্ক্রলেবল কনটেক্সটে ফিক্সড উচ্চতা দিতে হবে (যেমন 250.dp)
+ * @param headerOnDark true হলে সেকশন হেডার (হেডিং/কপি আইকন) গাঢ় ব্যাকগ্রাউন্ডের সাথে মানানসই হালকা রঙে আঁকা হয়
+ *                     (হোম সব থিমে এম্যারাল্ড ফুল-পেজ); false হলে থিম-অনুযায়ী রঙ (ক্যালেন্ডার)।
+ * উচ্চতা সবসময় কন্টেন্ট-মাফিক (auto)। কার্ডের ডান পাশে অন-কার্ড শেয়ার রেল
+ * (আজকের পঞ্জিকা কার্ডের side-share-এর মতো) — ট্যাপ করলে শুধু ছবি শেয়ার হয়।
  */
 @Composable
 fun AyahOfDayCard(
     ayah: AyahOfDay,
     s: Float,
     modifier: Modifier = Modifier,
-    fixedCardHeight: Dp? = null
+    headerOnDark: Boolean = false
 ) {
     val sp: (Float) -> androidx.compose.ui.unit.TextUnit = { (it * s).sp }
     val context = LocalContext.current
@@ -92,7 +93,7 @@ fun AyahOfDayCard(
             Text(
                 "আজকের আয়াত",
                 style = HidayahType.TitleSans.copy(fontSize = sp(15f)),
-                color = pal.ink,
+                color = if (headerOnDark) Cream else pal.ink,
                 modifier = Modifier.weight(1f)
             )
             // টেক্সট কপি — নীরব আইকন বৃত্ত
@@ -100,11 +101,11 @@ fun AyahOfDayCard(
                 Modifier
                     .size(dpv(30f))
                     .clip(CircleShape)
-                    .border(1.dp, pal.line, CircleShape)
+                    .border(1.dp, if (headerOnDark) Color(0x38FFFFFF) else pal.line, CircleShape)
                     .clickable(onClick = ::copyText),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Filled.ContentCopy, contentDescription = "টেক্সট কপি", tint = pal.sub, modifier = Modifier.size(dpv(14f)))
+                Icon(Icons.Filled.ContentCopy, contentDescription = "টেক্সট কপি", tint = if (headerOnDark) Color(0xFFC9D5C8) else pal.sub, modifier = Modifier.size(dpv(14f)))
             }
             Spacer(Modifier.width(dpv(8f)))
             // শেয়ার — সোনালি পিল (শুধু ছবি যাবে)
@@ -130,16 +131,17 @@ fun AyahOfDayCard(
             shape = HidayahShapes.Large,
             colors = CardDefaults.cardColors(containerColor = EmeraldDeep),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            modifier = (if (fixedCardHeight != null) Modifier.height(fixedCardHeight) else Modifier.weight(1f)).fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
-        Box(Modifier.fillMaxSize()) {
-            AyahCardArtwork(Modifier.fillMaxSize())
+        Box(Modifier.fillMaxWidth()) {
+            AyahCardArtwork(Modifier.matchParentSize())
 
-            // ---------- content (artwork + kicker + verse + brand) ----------
+            // ---------- content (verse + brand) + ডানদিকের অন-কার্ড শেয়ার রেল ----------
+            Row(Modifier.fillMaxWidth()) {
             Column(
                 Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = dpv(18f), vertical = dpv(9f)),
+                    .weight(1f)
+                    .padding(horizontal = dpv(14f), vertical = dpv(10f)),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
@@ -208,8 +210,53 @@ fun AyahOfDayCard(
                 )
             }
 
+            // ---------- অন-কার্ড শেয়ার রেল (পঞ্জিকার আজকের কার্ডের side-share-এর মতো) ----------
+            Column(
+                Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(end = dpv(11f)),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                ShareSparkle(Modifier.size(dpv(17f)))
+                Spacer(Modifier.height(dpv(6f)))
+                Icon(
+                    Icons.Filled.Share,
+                    contentDescription = "কার্ড শেয়ার করুন (শুধু ছবি)",
+                    tint = EmeraldDark,
+                    modifier = Modifier
+                        .size(dpv(36f))
+                        .clip(CircleShape)
+                        .background(Gold)
+                        .clickable(onClick = ::shareImage)
+                        .padding(dpv(9.5f))
+                )
+            }
+            }
+
         }
         }
+    }
+}
+
+/** গোল্ড ফোর-পয়েন্ট স্পার্কল (শেয়ার রেলের তারা) — হোমের GoldSparkle-এর অনুরূপ। */
+@Composable
+private fun ShareSparkle(modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val c = Offset(size.width / 2f, size.height / 2f)
+        val r = size.minDimension * 0.42f
+        val inner = r * 0.34f
+        val path = androidx.compose.ui.graphics.Path()
+        for (i in 0 until 16) {
+            val angle = (Math.PI / 8) * i - Math.PI / 2
+            val rr = if (i % 2 == 0) r else inner
+            val px = c.x + (rr * kotlin.math.cos(angle)).toFloat()
+            val py = c.y + (rr * kotlin.math.sin(angle)).toFloat()
+            if (i == 0) path.moveTo(px, py) else path.lineTo(px, py)
+        }
+        path.close()
+        drawPath(path, color = Gold)
+        drawCircle(color = Color(0xFF08251B), radius = r * 0.18f, center = c)
     }
 }
 
